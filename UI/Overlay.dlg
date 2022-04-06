@@ -1,0 +1,235 @@
+dialog = {
+    ["children"] = {
+		["DebugData"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = 20,
+                            ["w"] = 100,
+                            ["x"] = 6,
+                            ["y"] = 389,
+                        },
+                        ["enabled"] = true,
+                        ["text"] = "",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 0,
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "staticSkin",
+                            ["textWrapping"] = true,
+                        },
+                        ["states"] = {
+                            ["released"] = {
+                                [1] = {
+                                    ["text"] = {
+                                        ["color"] = "0xffffffff",
+                                        ["font"] = "DejaVuLGCSansCondensed-Bold.ttf",
+                                        ["lineHeight"] = 10,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    ["type"] = "Static",
+                },
+		["BottomArrow"] = {
+			["params"] = {
+				["angle"] = 0,
+				["bounds"] = {
+					["h"] = 100,
+					["w"] = 100,
+					["x"] = 300,
+					["y"] = 300,
+				},
+				["pivotPoint"] = {
+					["x"] = 0,
+					["y"] = 0,
+				},
+				["enabled"] = true,
+				["text"] = "Foo",
+				["tooltip"] = "",
+				["visible"] = true,
+				["zindex"] = 0,
+			},
+			["skin"] = {
+				["params"] = {
+					["name"] = "staticSkin",
+				},
+				["states"] = {
+					["released"] = {
+						[1] = {
+							["text"] = {
+								["color"] = "0xffffffff",
+								["font"] = "DejaVuLGCSansCondensed-Bold.ttf",
+								["lineHeight"] = 10,
+							},
+							["bkg"] = {
+								["center_center"] = "0xffffffff",
+							},
+						},
+					},
+				},
+			},
+			["type"] = "Static",
+		},
+		["TopArrow"] = {
+			["params"] = {
+				["angle"] = 0,
+				["bounds"] = {
+					["h"] = 100,
+					["w"] = 100,
+					["x"] = 300,
+					["y"] = 300,
+				},
+				["pivotPoint"] = {
+					["x"] = 0,
+					["y"] = 0,
+				},
+				["enabled"] = true,
+				["text"] = "Foo",
+				["tooltip"] = "",
+				["visible"] = true,
+				["zindex"] = 0,
+			},
+			["skin"] = {
+				["params"] = {
+					["name"] = "staticSkin",
+				},
+				["states"] = {
+					["released"] = {
+						[1] = {
+							["text"] = {
+								["color"] = "0xffffffff",
+								["font"] = "DejaVuLGCSansCondensed-Bold.ttf",
+								["lineHeight"] = 10,
+							},
+							["bkg"] = {
+								["center_center"] = "0xffffffff",
+							},
+						},
+					},
+				},
+			},
+			["type"] = "Static",
+		},
+		["LeftArrow"] = {
+			["params"] = {
+				["angle"] = 0,
+				["bounds"] = {
+					["h"] = 100,
+					["w"] = 100,
+					["x"] = 300,
+					["y"] = 300,
+				},
+				["pivotPoint"] = {
+					["x"] = 0,
+					["y"] = 0,
+				},
+				["enabled"] = true,
+				["text"] = "Foo",
+				["tooltip"] = "",
+				["visible"] = true,
+				["zindex"] = 0,
+			},
+			["skin"] = {
+				["params"] = {
+					["name"] = "staticSkin",
+				},
+				["states"] = {
+					["released"] = {
+						[1] = {
+							["text"] = {
+								["color"] = "0xffffffff",
+								["font"] = "DejaVuLGCSansCondensed-Bold.ttf",
+								["lineHeight"] = 10,
+							},
+							["bkg"] = {
+								["center_center"] = "0xffffffff",
+							},
+						},
+					},
+				},
+			},
+			["type"] = "Static",
+		},
+		["RightArrow"] = {
+			["params"] = {
+				["angle"] = 0,
+				["bounds"] = {
+					["h"] = 100,
+					["w"] = 100,
+					["x"] = 300,
+					["y"] = 300,
+				},
+				["pivotPoint"] = {
+					["x"] = 0,
+					["y"] = 0,
+				},
+				["enabled"] = true,
+				["text"] = "Foo",
+				["tooltip"] = "",
+				["visible"] = true,
+				["zindex"] = 0,
+			},
+			["skin"] = {
+				["params"] = {
+					["name"] = "staticSkin",
+				},
+				["states"] = {
+					["released"] = {
+						[1] = {
+							["text"] = {
+								["color"] = "0xffffffff",
+								["font"] = "DejaVuLGCSansCondensed-Bold.ttf",
+								["lineHeight"] = 10,
+							},
+							["bkg"] = {
+								["center_center"] = "0xffffffff",
+							},
+						},
+					},
+				},
+			},
+			["type"] = "Static",
+		}
+    },
+    ["params"] = {
+        ["bounds"] = {
+            [1] = {
+                ["h"] = 200,
+                ["w"] = 390,
+                ["x"] = 0,
+                ["y"] = 0,
+            },
+        },
+        ["draggable"] = false,
+        ["enabled"] = true,
+        ["hasCursor"] = false,
+        ["lockFlow"] = false,
+        ["modal"] = false,
+        ["offscreen"] = false,
+        ["resizable"] = false,
+        ["zOrder"] = 120,
+        ["text"] =  "VestiViz",
+		["clipResizeCursor"] = false,
+		["overlay"] = false,
+		["resizable"] = false
+    },
+    ["skin"] = {
+        ["params"] = {
+			["headerHeight"] = 0,
+            ["name"] = "windowSkin",
+        },
+        ["states"] = {
+            ["released"] = {
+                [1] = {
+                    ["bkg"] = {
+                        ["center_center"] = "0x000000aa",
+                    },
+                },
+            },
+        },
+    },
+    ["type"] = "Window",
+}
