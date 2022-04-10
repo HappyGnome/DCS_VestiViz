@@ -27,6 +27,7 @@ dialog = {
                                         ["font"] = "DejaVuLGCSansCondensed-Bold.ttf",
                                         ["lineHeight"] = 10,
                                     },
+
                                 },
                             },
                         },
@@ -47,7 +48,7 @@ dialog = {
 					["y"] = 0,
 				},
 				["enabled"] = true,
-				["text"] = "Foo",
+				["text"] = "",
 				["tooltip"] = "",
 				["visible"] = true,
 				["zindex"] = 0,
@@ -64,8 +65,23 @@ dialog = {
 								["font"] = "DejaVuLGCSansCondensed-Bold.ttf",
 								["lineHeight"] = 10,
 							},
-							["bkg"] = {
-								["center_center"] = "0xffffffff",
+							["picture"] = {
+								["color"] = "0xffffffff",
+								["file"] = "Mods\\Services\\VestiViz\\Skins\\arrow.png",
+								["horzAlign"] = {
+									["offset"] = 0,
+									["type"] = "middle",
+								},
+								["resizeToFill"] = true,
+								["size"] = {
+									["horz"] = 16,
+									["vert"] = 16,
+								},
+								["userTexSampler"] = 1,
+								["vertAlign"] = {
+									["offset"] = 0,
+									["type"] = "top",
+								}
 							},
 						},
 					},
@@ -77,17 +93,17 @@ dialog = {
 			["params"] = {
 				["angle"] = 0,
 				["bounds"] = {
-					["h"] = 100,
+					["h"] = 10,
 					["w"] = 100,
-					["x"] = 300,
-					["y"] = 300,
+					["x"] = 0,
+					["y"] = 0,
 				},
 				["pivotPoint"] = {
 					["x"] = 0,
 					["y"] = 0,
 				},
 				["enabled"] = true,
-				["text"] = "Foo",
+				["text"] = "",
 				["tooltip"] = "",
 				["visible"] = true,
 				["zindex"] = 0,
@@ -104,8 +120,23 @@ dialog = {
 								["font"] = "DejaVuLGCSansCondensed-Bold.ttf",
 								["lineHeight"] = 10,
 							},
-							["bkg"] = {
-								["center_center"] = "0xffffffff",
+							["picture"] = {
+								["color"] = "0xffffffff",
+								["file"] = "Mods\\Services\\VestiViz\\Skins\\arrow.png",
+								["horzAlign"] = {
+									["offset"] = 0,
+									["type"] = "middle",
+								},
+								["resizeToFill"] = true,
+								["size"] = {
+									["horz"] = 16,
+									["vert"] = 16,
+								},
+								["userTexSampler"] = 1,
+								["vertAlign"] = {
+									["offset"] = 0,
+									["type"] = "bottom",
+								}
 							},
 						},
 					},
@@ -113,6 +144,7 @@ dialog = {
 			},
 			["type"] = "Static",
 		},
+	
 		["LeftArrow"] = {
 			["params"] = {
 				["angle"] = 0,
@@ -127,7 +159,7 @@ dialog = {
 					["y"] = 0,
 				},
 				["enabled"] = true,
-				["text"] = "Foo",
+				["text"] = "",
 				["tooltip"] = "",
 				["visible"] = true,
 				["zindex"] = 0,
@@ -144,9 +176,24 @@ dialog = {
 								["font"] = "DejaVuLGCSansCondensed-Bold.ttf",
 								["lineHeight"] = 10,
 							},
-							["bkg"] = {
-								["center_center"] = "0xffffffff",
-							},
+							["picture"] = {
+								["color"] = "0xffffffff",
+								["file"] = "Mods\\Services\\VestiViz\\Skins\\arrowv.png",
+								["horzAlign"] = {
+									["offset"] = 0,
+									["type"] = "right",
+								},
+								["resizeToFill"] = true,
+								["size"] = {
+									["horz"] = 16,
+									["vert"] = 16,
+								},
+								["userTexSampler"] = 1,
+								["vertAlign"] = {
+									["offset"] = 0,
+									["type"] = "middle",
+								}
+							}
 						},
 					},
 				},
@@ -167,7 +214,7 @@ dialog = {
 					["y"] = 0,
 				},
 				["enabled"] = true,
-				["text"] = "Foo",
+				["text"] = "",
 				["tooltip"] = "",
 				["visible"] = true,
 				["zindex"] = 0,
@@ -184,8 +231,23 @@ dialog = {
 								["font"] = "DejaVuLGCSansCondensed-Bold.ttf",
 								["lineHeight"] = 10,
 							},
-							["bkg"] = {
-								["center_center"] = "0xffffffff",
+							["picture"] = {
+								["color"] = "0xffffffff",
+								["file"] = "Mods\\Services\\VestiViz\\Skins\\arrowv.png",
+								["horzAlign"] = {
+									["offset"] = 0,
+									["type"] = "left",
+								},
+								["resizeToFill"] = true,
+								["size"] = {
+									["horz"] = 16,
+									["vert"] = 16,
+								},
+								["userTexSampler"] = 1,
+								["vertAlign"] = {
+									["offset"] = 0,
+									["type"] = "middle",
+								}
 							},
 						},
 					},
@@ -225,7 +287,7 @@ dialog = {
             ["released"] = {
                 [1] = {
                     ["bkg"] = {
-                        ["center_center"] = "0x000000aa",
+                        ["center_center"] = "0x00000000",
                     },
                 },
             },
