@@ -13,7 +13,7 @@ local Static            = require('Static')
 local Tools             = require('tools')
 
 
-vestiViz = {
+VestiViz = {
 	-----------------------------------------------------
 	config = {
 		enabled = true,
@@ -57,14 +57,15 @@ vestiViz = {
 	accDescCrossEpoch = 0,
 	start = true,
 	colourInd = 1,
+	everyNFrames = 2,
 	logFile = io.open(lfs.writedir()..[[Logs\DCS-VestiViz-Overlay.log]], "w")
 }
-vestiViz.wlim = (vestiViz.config.maxw - vestiViz.config.minw)/2 
-vestiViz.wcen = (vestiViz.config.maxw + vestiViz.config.minw)/2
+VestiViz.wlim = (VestiViz.config.maxw - VestiViz.config.minw)/2 
+VestiViz.wcen = (VestiViz.config.maxw + VestiViz.config.minw)/2
 
 -----------------------------------------------------------
 --FILTERS AND ALGEBRA
-vestiViz.addToTail = function(accum, u, decay)
+VestiViz.addToTail = function(accum, u, decay)
 	local d = 1-decay
 
 	accum.x = d*u.x + decay * accum.x
@@ -73,55 +74,72 @@ vestiViz.addToTail = function(accum, u, decay)
 
 end
 
-vestiViz.compress = function(x,lim)
+VestiViz.compress = function(x,lim)
 	return x / (lim + math.abs(x));
 end
 
-vestiViz.compcompress = function(u,lims)
-	return {x = vestiViz.compress(u.x,lims.x),
-			y = vestiViz.compress(u.y,lims.y),
-			z = vestiViz.compress(u.z,lims.z)}
+VestiViz.compcompress = function(u,lims)
+	return {x = VestiViz.compress(u.x,lims.x),
+			y = VestiViz.compress(u.y,lims.y),
+			z = VestiViz.compress(u.z,lims.z)}
 end
 
-vestiViz.normalizeBar = function(bar)
-	return {off = 0.5 + vestiViz.config.offlim * vestiViz.compress(bar.off, 1),
-			w = vestiViz.wcen + vestiViz.wlim * vestiViz.compress(bar.w, 1)};
+VestiViz.normalizeBar = function(bar)
+	return {off = 0.5 + VestiViz.config.offlim * VestiViz.compress(bar.off, 1),
+			w = VestiViz.wcen + VestiViz.wlim * VestiViz.compress(bar.w, 1)};
 end
 
-vestiViz.interpolateBar = function(bar1,bar2)
+VestiViz.interpolateBar = function(bar1,bar2)
 	return {off = 0.5* bar1.off + 0.5 * bar2.off,
 			w = 0.5* bar1.w + 0.5 * bar2.w};
 end
 
-vestiViz.interpolateVec = function(u,v)
+VestiViz.interpolateVec = function(u,v)
 	return {x = 0.5* u.x + 0.5 * v.x,
 			y = 0.5* u.y + 0.5 * v.y,
 			z = 0.5* u.z + 0.5 * v.z};
 end
 
-vestiViz.compwiseMult = function(u,v)
+VestiViz.compwiseMult = function(u,v)
 	return {x = u.x * v.x,
 			y = u.y * v.y,
 			z = u.z * v.z};
 end
 
-vestiViz.scalarMult = function(u,a)
+VestiViz.scalarMult = function(u,a)
 	return {x = u.x * a,
 			y = u.y * a,
 			z = u.z * a};
 end
 
-vestiViz.vecDiff = function(u,v,dt)
+VestiViz.vecAdd = function(u,v)
+	return {x = (v.x + u.x),
+			y = (v.y + u.y),
+			z = (v.z + u.z)};
+end
+
+VestiViz.lin = function(us)
+	local ret = {x = 0,y = 0,z = 0};
+
+	for k,v in pairs(us) do
+		ret.x = ret.x + v[2] * v[1].x
+		ret.y = ret.y + v[2] * v[1].y
+		ret.z = ret.z + v[2] * v[1].z
+	end
+	return ret
+end
+
+VestiViz.vecDiff = function(u,v,dt)
 	return {x = (v.x - u.x)/dt,
 			y = (v.y - u.y)/dt,
 			z = (v.z - u.z)/dt}
 end
 
-vestiViz.vecDot = function(u,v)
+VestiViz.vecDot = function(u,v)
 	return u.x*v.x + u.y*v.y + u.z*v.z
 end
 
-vestiViz.normalize = function(u)
+VestiViz.normalize = function(u)
 	local r = u.x*u.x + u.y*u.y + u.z*u.z
 	if r == 0 then
 		return u
@@ -129,24 +147,83 @@ vestiViz.normalize = function(u)
 	local a = 1/math.sqrt(r)
 	return {x = u.x * a, y = u.y * a, z = u.z * a}
 end
+-- Best fit
+
+--[[
+	data = {{p = {x=...,y=...,z=...}, t = ...}, ...}
+	output = {acc = {x=...,y=...,z=...}, x = {}, y = {}, z = {}} the estimated acceleration in the data
+]]
+VestiViz.bestFitAccel = function(data)
+	local t1 = 0 -- mean time
+	local t2 = 0
+	local t3 = 0
+	local t4 = 0 --mean of (time - t1)^4
+	local N = 0
+	local p1 = {x=0,y=0,z=0} -- mean of p
+	local pt1 = {x=0,y=0,z=0} -- mean of p*t
+	local pt2 = {x=0,y=0,z=0}
+	local ret = {--[[x = {x=0,y=0,z=0}, y = {x=0,y=0,z=0},z = {x=0,y=0,z=0}]]}
+
+	for k,v in pairs(data) do
+		N = N + 1
+		t1 = t1 + v.t
+		p1 = VestiViz.vecAdd(p1,v.p)
+		--[[ret.x = VestiViz.vecAdd(ret.x,v.x)
+		ret.y = VestiViz.vecAdd(ret.y,v.y)
+		ret.z = VestiViz.vecAdd(ret.z,v.z)]]
+	end
+	if N == 0 then
+		return nil
+	end
+	local nInv = 1/N
+	t1 = t1 * nInv
+	p1 = VestiViz.scalarMult(p1,nInv)
+	--[[ret.x = VestiViz.scalarMult(ret.x,nInv)
+	ret.y = VestiViz.scalarMult(ret.y,nInv)
+	ret.z = VestiViz.scalarMult(ret.z,nInv)]]
+
+	for k,v in pairs(data) do
+		local tau = v.t
+		local tau2 = tau * v.t
+		local tau3 = tau2 * v.t
+		local tau4 = tau3 * v.t
+
+		t2 = t2 + tau2
+		t3 = t3 + tau3
+		t4 = t4 + tau4
+
+		pt1 = VestiViz.vecAdd(pt1,VestiViz.scalarMult(v.p,tau))	
+		pt2 = VestiViz.vecAdd(pt2,VestiViz.scalarMult(v.p,tau2))	
+	end
+	pt1 = VestiViz.scalarMult(pt1,nInv)
+	pt2 = VestiViz.scalarMult(pt2,nInv)
+
+	local D = t2*t4 -t2*t2*t2 - t3*t3
+	if D == 0 then
+		return nil
+	end
+
+	ret.acc = VestiViz.lin({{pt2,2*t2/D},{p1,-2*t2*t2/D},{pt1,-2*t3/D}}) -- 2 factor b/c acceleration is twice the quadratic coeff
+	return ret
+end
 
 --Circular buffers
-vestiViz.getCirc = function(circ,offset)
+VestiViz.getCirc = function(circ,offset)
 	return circ._v[1 + (circ._at + offset - 1)%(#circ._v)]
 end
 
-vestiViz.setNextCirc = function(circ,val)
+VestiViz.setNextCirc = function(circ,val)
 	circ._at = 1 + (circ._at % circ._maxSize)
 	circ._v[circ._at] = val
 end
 -----------------------------------------------------------
 -- CONFIG & UTILITY
-vestiViz.log = function(str)
+VestiViz.log = function(str)
     if not str then 
         return
     end
 
-    if vestiViz.logFile then
+    if VestiViz.logFile then
 		local msg
 		if type(str) == 'table' then
 			msg = '{'
@@ -162,17 +239,17 @@ vestiViz.log = function(str)
 		else
 			msg = str
 		end
-		vestiViz.logFile:write("["..os.date("%H:%M:%S").."] "..msg.."\r\n")
-		vestiViz.logFile:flush()
+		VestiViz.logFile:write("["..os.date("%H:%M:%S").."] "..msg.."\r\n")
+		VestiViz.logFile:flush()
     end
 end
 
-vestiViz.logCSV = function(str)
+VestiViz.logCSV = function(str)
     if not str then 
         return
     end
 
-    if vestiViz.logFile then
+    if VestiViz.logFile then
 		local msg
 		if type(str) == 'table' then
 			msg = ''
@@ -187,241 +264,232 @@ vestiViz.logCSV = function(str)
 		else
 			msg = str
 		end
-		vestiViz.logFile:write(msg .."\r\n")
-		vestiViz.logFile:flush()
+		VestiViz.logFile:write(msg .."\r\n")
+		VestiViz.logFile:flush()
     end
 end
 
-function vestiViz.loadConfiguration()
-    vestiViz.log("Config load starting")
+function VestiViz.loadConfiguration()
+    VestiViz.log("Config load starting")
 	
     local cfg = Tools.safeDoFile(lfs.writedir()..'Config/VestiViz.lua', false)
 	
     if (cfg and cfg.config) then
-		for k,v in pairs(vestiViz.config) do
+		for k,v in pairs(VestiViz.config) do
 			if cfg.config[k] ~= nil then
-				vestiViz.config[k] = cfg.config[k]
+				VestiViz.config[k] = cfg.config[k]
 			end
 		end        
     end
 	
-	vestiViz.saveConfiguration()
+	VestiViz.saveConfiguration()
 end
 
-function vestiViz.saveConfiguration()
-    U.saveInFile(vestiViz.config, 'config', lfs.writedir()..'Config/VestiViz.lua')
+function VestiViz.saveConfiguration()
+    U.saveInFile(VestiViz.config, 'config', lfs.writedir()..'Config/VestiViz.lua')
 end
 -----------------------------------------------------------
 
 -----------------------------------------------------------
-vestiViz.setItemPicCol = function (item,col)
+VestiViz.setItemPicCol = function (item,col)
 	local skin = item:getSkin()
 	skin.skinData.states.released[1].picture.color = col
 	item:setSkin(skin)
 end
 
-vestiViz.setImageBaseDir = function (item,dir)
+VestiViz.setImageBaseDir = function (item,dir)
 	local skin = item:getSkin()
 	skin.skinData.states.released[1].picture.file = dir .. skin.skinData.states.released[1].picture.file
 	item:setSkin(skin)
 end
 
-vestiViz.LoadDlg = function()
-	vestiViz.log("Creating VestiViz Overlay")
-	if vestiViz.window ~= nil then
-		vestiViz.window:setVisible(false)
+VestiViz.LoadDlg = function()
+	VestiViz.log("Creating VestiViz Overlay")
+	if VestiViz.window ~= nil then
+		VestiViz.window:setVisible(false)
 	end
 
-	vestiViz.window = DialogLoader.spawnDialogFromFile(lfs.writedir() .. 'Mods\\Services\\VestiViz\\UI\\Overlay.dlg', cdata)
+	VestiViz.window = DialogLoader.spawnDialogFromFile(lfs.writedir() .. 'Mods\\Services\\VestiViz\\UI\\Overlay.dlg', cdata)
 
-	vestiViz.setImageBaseDir(vestiViz.window.LeftArrow,lfs.writedir())
-	vestiViz.setImageBaseDir(vestiViz.window.RightArrow,lfs.writedir())
-	vestiViz.setImageBaseDir(vestiViz.window.TopArrow,lfs.writedir())
-	vestiViz.setImageBaseDir(vestiViz.window.BottomArrow,lfs.writedir())
+	VestiViz.setImageBaseDir(VestiViz.window.LeftArrow,lfs.writedir())
+	VestiViz.setImageBaseDir(VestiViz.window.RightArrow,lfs.writedir())
+	VestiViz.setImageBaseDir(VestiViz.window.TopArrow,lfs.writedir())
+	VestiViz.setImageBaseDir(VestiViz.window.BottomArrow,lfs.writedir())
 	
-	vestiViz.window:setVisible(true)
-	vestiViz.width, vestiViz.height = Gui.GetWindowSize()
-	vestiViz.window:setSize(vestiViz.width, vestiViz.height)
-	vestiViz.UpdateShowHideDlg()
+	VestiViz.window:setVisible(true)
+	VestiViz.width, VestiViz.height = Gui.GetWindowSize()
+	VestiViz.window:setSize(VestiViz.width, VestiViz.height)
+	VestiViz.UpdateShowHideDlg()
 	
-	vestiViz.window:addHotKeyCallback(vestiViz.config.logHotkey, vestiViz.onLogHotkey)
-	vestiViz.window:addHotKeyCallback(vestiViz.config.showHotkey, vestiViz.onShowHotkey)
-	vestiViz.window:addHotKeyCallback(vestiViz.config.decHotkey, vestiViz.onDecHotkey)
-	vestiViz.window:addHotKeyCallback(vestiViz.config.incHotkey, vestiViz.onIncHotkey)
+	VestiViz.window:addHotKeyCallback(VestiViz.config.logHotkey, VestiViz.onLogHotkey)
+	VestiViz.window:addHotKeyCallback(VestiViz.config.showHotkey, VestiViz.onShowHotkey)
+	VestiViz.window:addHotKeyCallback(VestiViz.config.decHotkey, VestiViz.onDecHotkey)
+	VestiViz.window:addHotKeyCallback(VestiViz.config.incHotkey, VestiViz.onIncHotkey)
 
-	vestiViz.log("VestiViz Overlay created")
+	VestiViz.log("VestiViz Overlay created")
 
 end
 
-vestiViz.UpdateShowHideDlg = function()
-	vestiViz.window.LeftArrow:setVisible(not vestiViz.hide)
-	vestiViz.window.RightArrow:setVisible(not vestiViz.hide)
-	vestiViz.window.TopArrow:setVisible(not vestiViz.hide)
-	vestiViz.window.BottomArrow:setVisible(not vestiViz.hide)
+VestiViz.UpdateShowHideDlg = function()
+	VestiViz.window.LeftArrow:setVisible(not VestiViz.hide)
+	VestiViz.window.RightArrow:setVisible(not VestiViz.hide)
+	VestiViz.window.TopArrow:setVisible(not VestiViz.hide)
+	VestiViz.window.BottomArrow:setVisible(not VestiViz.hide)
 end
 
-vestiViz.DetectPeriodicNoise = function (yNow, dt)
-	local crudeYVel = (yNow - vestiViz.prev.detectPeriod.y)/dt
+VestiViz.DetectPeriodicNoise = function (yNow, dt)
+	local crudeYVel = (yNow - VestiViz.prev.detectPeriod.y)/dt
 	--Detect periodic noise
-	if crudeYVel - vestiViz.prev.detectPeriod.v[2] < 0 and vestiViz.prev.detectPeriod.v[2]  - vestiViz.prev.detectPeriod.v[1] >= 0 then -- desc crossing
-		if vestiViz.accDescCrossEpoch > 0 then
-			vestiViz.periodHint = vestiViz.accDescCrossEpoch - 1
+	if crudeYVel - VestiViz.prev.detectPeriod.v[2] < 0 and VestiViz.prev.detectPeriod.v[2]  - VestiViz.prev.detectPeriod.v[1] >= 0 then -- desc crossing
+		if VestiViz.accDescCrossEpoch > 0 then
+			VestiViz.periodHint = VestiViz.accDescCrossEpoch - 1
 		end
-		vestiViz.accDescCrossEpoch = 1
-	elseif vestiViz.accDescCrossEpoch > 0 then
-		vestiViz.accDescCrossEpoch = (1+vestiViz.accDescCrossEpoch)%vestiViz.prev.posCirc._maxSize
-		if vestiViz.accDescCrossEpoch == 0 then
-			vestiViz.periodHint = 0
+		VestiViz.accDescCrossEpoch = 1
+	elseif VestiViz.accDescCrossEpoch > 0 then
+		VestiViz.accDescCrossEpoch = (1+VestiViz.accDescCrossEpoch)%VestiViz.prev.posCirc._maxSize
+		if VestiViz.accDescCrossEpoch == 0 then
+			VestiViz.periodHint = 0
 		end
 	end
-	vestiViz.prev.detectPeriod.y = yNow
-	vestiViz.prev.detectPeriod.v[1] = vestiViz.prev.detectPeriod.v[2]
-	vestiViz.prev.detectPeriod.v[2] = crudeYVel
+	VestiViz.prev.detectPeriod.y = yNow
+	VestiViz.prev.detectPeriod.v[1] = VestiViz.prev.detectPeriod.v[2]
+	VestiViz.prev.detectPeriod.v[2] = crudeYVel
 end
 
-vestiViz.frames = 0
-vestiViz.doOnSimFrame = function()
+VestiViz.frames = 0
+VestiViz.doOnSimFrame = function()
 	
-	vestiViz.frames = vestiViz.frames + 1
-	if vestiViz.window then
+	VestiViz.frames = VestiViz.frames + 1
+	if VestiViz.window then
 		local now = base.Export.LoGetModelTime() --getModelTime -- socket.gettime()/1000 -- DCS.getRealTime()
 		local pos3 = base.Export.LoGetCameraPosition()
 		local here = pos3.p
 		local X = pos3.x
 		local Y = pos3.y
 		local Z = pos3.z
-		local vel = vestiViz.prev.vel
+		local vel = VestiViz.prev.vel
 	
-		if vestiViz.start then
-			vestiViz.prev.time = now
-			vestiViz.prev.vel = vel
-			vestiViz.prev.posCirc = {_v= {[1] = {p = here, t= now, x = {x=0,y=0,z=0}, y= {x=0,y=0,z=0},z = {x=0,y=0,z=0}}}, _at = 1, _maxSize = 8}
-			vestiViz.start = false
-			vestiViz.prev.dt = 0.01
-			vestiViz.periodHint = 0
+		if VestiViz.start then
+			VestiViz.prev.time = now
+			VestiViz.prev.vel = vel
+			VestiViz.prev.posCirc = {_v= {[1] = {p = here, t= now, x = {x=0,y=0,z=0}, y= {x=0,y=0,z=0},z = {x=0,y=0,z=0}}}, _at = 1, _maxSize = 8}
+			VestiViz.start = false
+			VestiViz.prev.dt = 0.01
+			VestiViz.periodHint = 0
 		else
-			local dt = now - vestiViz.prev.time;
+			local dt = now - VestiViz.prev.time;
 		
-			if dt > vestiViz.minDt then
+			if dt > VestiViz.minDt and VestiViz.frames >= VestiViz.everyNFrames then
+				local prev = VestiViz.getCirc(VestiViz.prev.posCirc,0)
+				VestiViz.setNextCirc(VestiViz.prev.posCirc,{p = here, t = now, x = X, y = Y, z = Z})
 
-				vestiViz.DetectPeriodicNoise(here.y,dt)
-				
-				local prev = vestiViz.getCirc(vestiViz.prev.posCirc, -vestiViz.periodHint)
-
-				local meanX = vestiViz.normalize(vestiViz.interpolateVec(X,prev.x))
-				local meanY = vestiViz.normalize(vestiViz.interpolateVec(Y,prev.y))
-				local meanZ = vestiViz.normalize(vestiViz.interpolateVec(Z,prev.z))
-				
-				local dtLong = now - prev.t -- time since previous sample to use for velocity derivatives
-				vel = vestiViz.vecDiff(prev.p,here,dtLong)
-				
-				local worldAcc = vestiViz.vecDiff(vestiViz.prev.vel,vel,(dt + vestiViz.prev.dt)/2)
+				local worldAcc = VestiViz.bestFitAccel(VestiViz.prev.posCirc._v).acc--
 				worldAcc.y = worldAcc.y + 9.81
 				
-				local decayFactor = math.pow(0.5,dt/vestiViz.config.halflife)
+				local decayFactor = math.pow(0.5,dt/VestiViz.config.halflife)
 
-				local rawYAcc = vestiViz.vecDot(worldAcc,meanY) - 9.81
+				local rawYAcc = VestiViz.vecDot(worldAcc,Y) - 9.81
 
 				if rawYAcc < 0 then
-					rawYAcc = rawYAcc * vestiViz.config.acclims.mY
+					rawYAcc = rawYAcc * VestiViz.config.acclims.mY
 				end
 				
-				vestiViz.addToTail(vestiViz.prev.acc,
-									vestiViz.compcompress(
+				VestiViz.addToTail(VestiViz.prev.acc,
+									VestiViz.compcompress(
 										{
-											x = vestiViz.vecDot(worldAcc,meanX),
+											x = VestiViz.vecDot(worldAcc,X),
 									 		y = rawYAcc,
-									 		z = vestiViz.vecDot(worldAcc,meanZ)
+									 		z = VestiViz.vecDot(worldAcc,Z)
 										},
-										vestiViz.config.acclims),
+										VestiViz.config.acclims),
 									decayFactor
 								)
 								 
-				local viewAcc = vestiViz.scalarMult(vestiViz.prev.acc,vestiViz.config.accFactor)
-				local somatoGrav = vestiViz.scalarMult(vestiViz.prev.acc,vestiViz.config.somatogravFactor)
+				local viewAcc = VestiViz.scalarMult(VestiViz.prev.acc,VestiViz.config.accFactor)
+				local somatoGrav = VestiViz.scalarMult(VestiViz.prev.acc,VestiViz.config.somatogravFactor)
 
-				local dX = vestiViz.vecDiff(prev.x,meanX,dtLong)
+				local dX = VestiViz.vecDiff(prev.x,X,dt)
 
-				local dY = vestiViz.vecDiff(prev.y,meanY,dtLong)
+				local dY = VestiViz.vecDiff(prev.y,Y,dt)
 				
-				vestiViz.addToTail(vestiViz.prev.rot,
-									vestiViz.compcompress(
+				VestiViz.addToTail(VestiViz.prev.rot,
+									VestiViz.compcompress(
 										{
-											x = vestiViz.vecDot(meanZ,dY),
-											y = -vestiViz.vecDot(meanZ,dX),
-											z = vestiViz.vecDot(meanY,dX)
+											x = VestiViz.vecDot(Z,dY),
+											y = -VestiViz.vecDot(Z,dX),
+											z = VestiViz.vecDot(Y,dX)
 										},
-										vestiViz.config.rotlims),
+										VestiViz.config.rotlims),
 									decayFactor
 								)
 								
-				local viewRot = vestiViz.scalarMult(vestiViz.prev.rot,vestiViz.config.rotFactor)
+				local viewRot = VestiViz.scalarMult(VestiViz.prev.rot,VestiViz.config.rotFactor)
 					
 				local bars = {
-					bottom = vestiViz.normalizeBar({
+					bottom = VestiViz.normalizeBar({
 						off = viewRot.x + viewRot.y - somatoGrav.z,
 						w = viewAcc.y - viewAcc.x
 					}),							  
-					top = vestiViz.normalizeBar({
+					top = VestiViz.normalizeBar({
 						off = -viewRot.x + viewRot.y + somatoGrav.z,
 						w = -viewAcc.y - viewAcc.x
 					}),							  
-					left = vestiViz.normalizeBar({
+					left = VestiViz.normalizeBar({
 						off = viewRot.x + viewRot.z + (somatoGrav.x - somatoGrav.z),
 						w = viewAcc.z - viewAcc.x
 					}),					
-					right = vestiViz.normalizeBar({
+					right = VestiViz.normalizeBar({
 						off = - viewRot.x + viewRot.z + (somatoGrav.z + somatoGrav.x),
 						w = - viewAcc.z - viewAcc.x
 					})
 				}
-				local bottom = vestiViz.interpolateBar(bars.bottom, vestiViz.prev.bars.bottom)
+				local bottom = VestiViz.interpolateBar(bars.bottom, VestiViz.prev.bars.bottom)
 						  
-				local top = vestiViz.interpolateBar(bars.top, vestiViz.prev.bars.top)
+				local top = VestiViz.interpolateBar(bars.top, VestiViz.prev.bars.top)
 						  
-				local left = vestiViz.interpolateBar(bars.left, vestiViz.prev.bars.left)
+				local left = VestiViz.interpolateBar(bars.left, VestiViz.prev.bars.left)
 				
-				local right = vestiViz.interpolateBar(bars.right, vestiViz.prev.bars.right)
+				local right = VestiViz.interpolateBar(bars.right, VestiViz.prev.bars.right)
 
-				vestiViz.prev.bars = bars
+				VestiViz.prev.bars = bars
 				
-				--vestiViz.window.DebugData:setText("Hi:"..bottom.off)
-				vestiViz.window.BottomArrow:setBounds(
-					vestiViz.width * (bottom.off - bottom.w), 
-					vestiViz.height - vestiViz.config.barWidth, 
-					2 * vestiViz.width * bottom.w,
-					vestiViz.config.barWidth)
+				--VestiViz.window.DebugData:setText("Hi:"..bottom.off)
+				VestiViz.window.BottomArrow:setBounds(
+					VestiViz.width * (bottom.off - bottom.w), 
+					VestiViz.height - VestiViz.config.barWidth, 
+					2 * VestiViz.width * bottom.w,
+					VestiViz.config.barWidth)
 					
-				vestiViz.window.TopArrow:setBounds(
-					vestiViz.width * (top.off - top.w), 
+				VestiViz.window.TopArrow:setBounds(
+					VestiViz.width * (top.off - top.w), 
 					0, 
-					2 * vestiViz.width * top.w,  
-					vestiViz.config.barWidth)	
+					2 * VestiViz.width * top.w,  
+					VestiViz.config.barWidth)	
 					
-				vestiViz.window.LeftArrow:setBounds(
+				VestiViz.window.LeftArrow:setBounds(
 					0, 
-					vestiViz.height * (left.off - left.w), 
-					vestiViz.config.barWidth,  
-					2 * vestiViz.height * left.w)
+					VestiViz.height * (left.off - left.w), 
+					VestiViz.config.barWidth,  
+					2 * VestiViz.height * left.w)
 					
-				vestiViz.window.RightArrow:setBounds(
-					vestiViz.width-vestiViz.config.barWidth, 
-					vestiViz.height * (right.off - right.w), 
-					vestiViz.config.barWidth,  
-					2 * vestiViz.height * right.w)
+				VestiViz.window.RightArrow:setBounds(
+					VestiViz.width-VestiViz.config.barWidth, 
+					VestiViz.height * (right.off - right.w), 
+					VestiViz.config.barWidth,  
+					2 * VestiViz.height * right.w)
 					
-				vestiViz.prev.time = now
-				vestiViz.prev.vel = vel
-				vestiViz.prev.dt = dt
-				vestiViz.setNextCirc(vestiViz.prev.posCirc,{p = here, t = now, x = X, y = Y, z = Z})
+				VestiViz.prev.time = now
+				VestiViz.prev.vel = vel
+				VestiViz.prev.dt = dt
 				
-				if vestiViz.logModelUntil > now then
-					vestiViz.logCSV({dt, worldAcc.x, worldAcc.y, worldAcc.z, here.x,
-					here.y,here.z, vel.x,vel.y,vel.z, vestiViz.frames, 
-					vestiViz.prev.acc.x, vestiViz.prev.acc.y, vestiViz.prev.acc.z, vestiViz.accDescCrossEpoch,
-					vestiViz.periodHint, vestiViz.prev.posCirc._at})
+				
+				if VestiViz.logModelUntil > now then
+					VestiViz.logCSV({dt, worldAcc.x, worldAcc.y, worldAcc.z, here.x,
+					here.y,here.z, vel.x,vel.y,vel.z, VestiViz.frames, 
+					VestiViz.prev.acc.x, VestiViz.prev.acc.y, VestiViz.prev.acc.z, VestiViz.accDescCrossEpoch,
+					VestiViz.periodHint, VestiViz.prev.posCirc._at})
 				end
-				vestiViz.frames = 0
+				VestiViz.frames = 0
 			end
 		end
 
@@ -430,66 +498,66 @@ end
  
 --------------------------------------------------------------
 -- CALLBACKS
-vestiViz.onSimulationFrame = function()	
-	if not vestiViz.window then
-		vestiViz.loadConfiguration()
-		vestiViz.LoadDlg()
+VestiViz.onSimulationFrame = function()	
+	if not VestiViz.window then
+		VestiViz.loadConfiguration()
+		VestiViz.LoadDlg()
 	end
 
-	if vestiViz.hide == false then
-			vestiViz.errorCooldown = math.max(vestiViz.errorCooldown - 1,0)
-		local status,err = pcall(vestiViz.doOnSimFrame)
-		if not status and vestiViz.errorCooldown <= 0 then
-			vestiViz.log(err)
-			vestiViz.errorCooldown = 4000
+	if VestiViz.hide == false then
+			VestiViz.errorCooldown = math.max(VestiViz.errorCooldown - 1,0)
+		local status,err = pcall(VestiViz.doOnSimFrame)
+		if not status and VestiViz.errorCooldown <= 0 then
+			VestiViz.log(err)
+			VestiViz.errorCooldown = 4000
 		end
 	end
 end
 
-vestiViz.onSimulationStart = function()
-	vestiViz.start = true
-	vestiViz.loadConfiguration()
-	vestiViz.LoadDlg()
+VestiViz.onSimulationStart = function()
+	VestiViz.start = true
+	VestiViz.loadConfiguration()
+	VestiViz.LoadDlg()
 end
 
-vestiViz.onSimulationStop = function()
-	vestiViz.hide = true
-	vestiViz.UpdateShowHideDlg()
+VestiViz.onSimulationStop = function()
+	VestiViz.hide = true
+	VestiViz.UpdateShowHideDlg()
 end
 --------------------------------------------------------------
 -- HOTKEYS
-vestiViz.onLogHotkey = function()
-	vestiViz.logModelUntil = base.Export.LoGetModelTime() + 3
+VestiViz.onLogHotkey = function()
+	VestiViz.logModelUntil = base.Export.LoGetModelTime() + 3
 
-	vestiViz.logCSV({'dt', 'accx', 'accy', 'accz', 'x',
+	VestiViz.logCSV({'dt', 'accx', 'accy', 'accz', 'x',
 					'y','z', 'vx','vy','vz', 'frames', 
 					'vax', 'vay', 'vaz', 'epoch',
 					'periodHint', 'circAt'})
 end
 
-vestiViz.onShowHotkey = function()
-	vestiViz.LoadDlg() -- debug
-	vestiViz.hide =  (not vestiViz.hide) or (not vestiViz.config.enabled)
-	vestiViz.UpdateShowHideDlg()
+VestiViz.onShowHotkey = function()
+	VestiViz.LoadDlg() -- debug
+	VestiViz.hide =  (not VestiViz.hide) or (not VestiViz.config.enabled)
+	VestiViz.UpdateShowHideDlg()
 end
 
-vestiViz.onDecHotkey = function()
-	vestiViz.colourInd = math.max(vestiViz.colourInd-1,1)
-	local colour = vestiViz.config.colours[vestiViz.colourInd]
-	vestiViz.setItemPicCol(vestiViz.window.LeftArrow,colour)
-	vestiViz.setItemPicCol(vestiViz.window.RightArrow,colour)
-	vestiViz.setItemPicCol(vestiViz.window.TopArrow,colour)
-	vestiViz.setItemPicCol(vestiViz.window.BottomArrow,colour)
+VestiViz.onDecHotkey = function()
+	VestiViz.colourInd = math.max(VestiViz.colourInd-1,1)
+	local colour = VestiViz.config.colours[VestiViz.colourInd]
+	VestiViz.setItemPicCol(VestiViz.window.LeftArrow,colour)
+	VestiViz.setItemPicCol(VestiViz.window.RightArrow,colour)
+	VestiViz.setItemPicCol(VestiViz.window.TopArrow,colour)
+	VestiViz.setItemPicCol(VestiViz.window.BottomArrow,colour)
 end
 
-vestiViz.onIncHotkey = function()
-	vestiViz.colourInd = math.min(1 + vestiViz.colourInd,#vestiViz.config.colours)
-	local colour = vestiViz.config.colours[vestiViz.colourInd]
-	vestiViz.setItemPicCol(vestiViz.window.LeftArrow,colour)
-	vestiViz.setItemPicCol(vestiViz.window.RightArrow,colour)
-	vestiViz.setItemPicCol(vestiViz.window.TopArrow,colour)
-	vestiViz.setItemPicCol(vestiViz.window.BottomArrow,colour)
+VestiViz.onIncHotkey = function()
+	VestiViz.colourInd = math.min(1 + VestiViz.colourInd,#VestiViz.config.colours)
+	local colour = VestiViz.config.colours[VestiViz.colourInd]
+	VestiViz.setItemPicCol(VestiViz.window.LeftArrow,colour)
+	VestiViz.setItemPicCol(VestiViz.window.RightArrow,colour)
+	VestiViz.setItemPicCol(VestiViz.window.TopArrow,colour)
+	VestiViz.setItemPicCol(VestiViz.window.BottomArrow,colour)
 
 end
 --------------------------------------------------------------
-DCS.setUserCallbacks(vestiViz)
+DCS.setUserCallbacks(VestiViz)
