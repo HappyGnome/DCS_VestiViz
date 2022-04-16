@@ -1,0 +1,3 @@
+LIBRARY vestiviz
+EXPORTS
+  luaopen_vestiviz

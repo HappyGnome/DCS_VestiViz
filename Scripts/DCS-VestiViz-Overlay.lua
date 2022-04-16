@@ -1,5 +1,7 @@
 net.log("VestiViz Hook called")
 
+
+
 local base = _G
 
 local lfs               = require('lfs')
@@ -12,6 +14,9 @@ local DialogLoader      = require('DialogLoader')
 local Static            = require('Static')
 local Tools             = require('tools')
 
+package.cpath = package.cpath..";"..lfs.writedir().."Mods\\Services\\VestiViz\\bin\\?.dll;"
+
+local VestiVizLib = nil
 
 VestiViz = {
 	-----------------------------------------------------
@@ -62,6 +67,94 @@ VestiViz = {
 }
 VestiViz.wlim = (VestiViz.config.maxw - VestiViz.config.minw)/2 
 VestiViz.wcen = (VestiViz.config.maxw + VestiViz.config.minw)/2
+
+-----------------------------------------------------------
+-- CONFIG & UTILITY
+VestiViz.log = function(str)
+    if not str then 
+        return
+    end
+
+    if VestiViz.logFile then
+		local msg
+		if type(str) == 'table' then
+			msg = '{'
+			for k,v in pairs(str) do
+				local t = type(v)
+				if t == 'string' or t == 'number' then
+					msg = msg..k..':'..v..', '
+				else
+					msg = msg..k..':'..t..', '
+				end
+			end
+			msg = msg..'}'
+		else
+			msg = str
+		end
+		VestiViz.logFile:write("["..os.date("%H:%M:%S").."] "..msg.."\r\n")
+		VestiViz.logFile:flush()
+    end
+end
+
+VestiViz.logCSV = function(str)
+    if not str then 
+        return
+    end
+
+    if VestiViz.logFile then
+		local msg
+		if type(str) == 'table' then
+			msg = ''
+			for k,v in pairs(str) do
+				local t = type(v)
+				if t == 'string' or t == 'number' then
+					msg = msg..v..', '
+				else
+					msg = msg..t..', '
+				end
+			end
+		else
+			msg = str
+		end
+		VestiViz.logFile:write(msg .."\r\n")
+		VestiViz.logFile:flush()
+    end
+end
+
+function VestiViz.loadConfiguration()
+    VestiViz.log("Config load starting")
+	
+    local cfg = Tools.safeDoFile(lfs.writedir()..'Config/VestiViz.lua', false)
+	
+    if (cfg and cfg.config) then
+		for k,v in pairs(VestiViz.config) do
+			if cfg.config[k] ~= nil then
+				VestiViz.config[k] = cfg.config[k]
+			end
+		end        
+    end
+	
+	VestiViz.saveConfiguration()
+end
+
+function VestiViz.saveConfiguration()
+    U.saveInFile(VestiViz.config, 'config', lfs.writedir()..'Config/VestiViz.lua')
+end
+-----------------------------------------------------------
+-- LOAD DLL
+--VestiViz.log(_VERSION)
+pcall(function()
+	vestiviz = require('vestiviz')
+	VestiViz.log("Loaded VestiViz.dll")
+end)
+
+if not vestiviz then
+	VestiViz.log("Couldn't load VestiViz.dll")
+else
+	VestiViz.log(vestiviz.Foo())
+end
+
+
 
 -----------------------------------------------------------
 --FILTERS AND ALGEBRA
@@ -216,79 +309,6 @@ VestiViz.setNextCirc = function(circ,val)
 	circ._at = 1 + (circ._at % circ._maxSize)
 	circ._v[circ._at] = val
 end
------------------------------------------------------------
--- CONFIG & UTILITY
-VestiViz.log = function(str)
-    if not str then 
-        return
-    end
-
-    if VestiViz.logFile then
-		local msg
-		if type(str) == 'table' then
-			msg = '{'
-			for k,v in pairs(str) do
-				local t = type(v)
-				if t == 'string' or t == 'number' then
-					msg = msg..k..':'..v..', '
-				else
-					msg = msg..k..':'..t..', '
-				end
-			end
-			msg = msg..'}'
-		else
-			msg = str
-		end
-		VestiViz.logFile:write("["..os.date("%H:%M:%S").."] "..msg.."\r\n")
-		VestiViz.logFile:flush()
-    end
-end
-
-VestiViz.logCSV = function(str)
-    if not str then 
-        return
-    end
-
-    if VestiViz.logFile then
-		local msg
-		if type(str) == 'table' then
-			msg = ''
-			for k,v in pairs(str) do
-				local t = type(v)
-				if t == 'string' or t == 'number' then
-					msg = msg..v..', '
-				else
-					msg = msg..t..', '
-				end
-			end
-		else
-			msg = str
-		end
-		VestiViz.logFile:write(msg .."\r\n")
-		VestiViz.logFile:flush()
-    end
-end
-
-function VestiViz.loadConfiguration()
-    VestiViz.log("Config load starting")
-	
-    local cfg = Tools.safeDoFile(lfs.writedir()..'Config/VestiViz.lua', false)
-	
-    if (cfg and cfg.config) then
-		for k,v in pairs(VestiViz.config) do
-			if cfg.config[k] ~= nil then
-				VestiViz.config[k] = cfg.config[k]
-			end
-		end        
-    end
-	
-	VestiViz.saveConfiguration()
-end
-
-function VestiViz.saveConfiguration()
-    U.saveInFile(VestiViz.config, 'config', lfs.writedir()..'Config/VestiViz.lua')
-end
------------------------------------------------------------
 
 -----------------------------------------------------------
 VestiViz.setItemPicCol = function (item,col)

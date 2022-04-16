@@ -1,0 +1,7 @@
+*.exp
+*.pdb
+bin/*.lib
+bin/Source/VestiViz/.vs
+bin/Source/VestiViz/VestiViz/x64
+bin/Source/VestiViz/VestiViz/Release
+bin/Source/VestiViz/VestiViz/*.user
