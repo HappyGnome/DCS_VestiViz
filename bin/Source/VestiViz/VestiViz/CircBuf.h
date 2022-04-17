@@ -12,17 +12,22 @@ class CircBuf {
 	std::list<T> mBuf;
 	std::size_t mCapacity;
 
-	void trim(int n = mCapacity){
-		int excess = mBuf.size() - mCapacity;
+	void trim(std::size_t n){
+		std::size_t excess = mBuf.size() - n;
 		if (excess > 0) {
-			mBuf.erase(mBuf.cbegin,std::advance(mBuf.cbegin,excess));
+			auto last = mBuf.cbegin();
+			std::advance(last, excess);
+			mBuf.erase(mBuf.cbegin(), last);
 		}
 	}
-public:
 
+	void trim() {
+		trim(mCapacity);
+	}
+public:
 	explicit CircBuf(std::size_t capacity) : mCapacity(capacity) {}
 
-	void push_back(T &value const) {
+	void push_back(const T &value) {
 		mBuf.push_back(value);
 		trim();
 	}
@@ -35,12 +40,8 @@ public:
 		trim();
 	}
 
-	std::iterator<T> cbegin() const{
-		return mBuf.cbegin();
-	}
-
-	std::iterator<T> cend() const {
-		return mBuf.cend();
+	typename const std::list<T>& data() const{
+		return mBuf;
 	}
 
 	bool empty() const { return mBuf.empty(); }

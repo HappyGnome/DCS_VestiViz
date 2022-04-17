@@ -1,7 +1,13 @@
 *.exp
 *.pdb
+bin/*.dll
+*.xml
+*.exe
 bin/*.lib
+bin/Source/VestiViz/x64
 bin/Source/VestiViz/.vs
 bin/Source/VestiViz/VestiViz/x64
 bin/Source/VestiViz/VestiViz/Release
 bin/Source/VestiViz/VestiViz/*.user
+bin/Source/VestiViz/Test/*.user
+bin/Source/VestiViz/Test/x64

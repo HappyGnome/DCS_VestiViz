@@ -27,7 +27,25 @@
     <ClInclude Include="CircBuf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataProcessorBase.h">
+    <ClInclude Include="SingleInputFilterBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AsyncFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OutputFilterBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CircPostbox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostboxInputBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SimplePostbox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostboxBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
