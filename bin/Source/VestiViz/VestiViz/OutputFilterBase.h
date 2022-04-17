@@ -1,80 +1,69 @@
 #pragma once
 
-
-#pragma once
-
 #ifndef _OUTPUTFILTERBASE_H_
 #define _OUTPUTFILTERBASE_H_
 
 #include<mutex>
 
-#include "AsyncDataHandler.h"
+#include "AsyncFilter.h"
+#include "CircPostbox.h"
 
 template <typename Tin, typename Tout>
-class OutputFilterBase : public AsyncDataHandler<Tin> {
+class OutputFilterBase : public AsyncFilter<Tout> {
 private:
+	std::shared_ptr<PostboxInputBase<Tout>> mOutput;
+	std::mutex mOutputMutex;
 
-	Tout mLatest;
-	Tout mLatestInput;
-	std::mutex mLatestMutex;
-	bool mHasLatest = false;
+	std::shared_ptr<CircPostbox<Tin>> mInput;
 protected:
 
-	virtual void processInput() final {
+	/**
+	 * Cancel processing loop as soon as possible.
+	 * Subsequent calls to waitForInput must return false and any blocking calls exit when possible.
+	 */
+	void cancel() final {
+		mInput->cancel();
+	}
 
-		Tout newLatest = processStep();
+	bool process() final {
 
-		{//mNextProcessorMutex lock scope
-			std::lock_guard<std::mutex> lock(mNextProcessorMutex);
-			if (mNextProcessor.get() != nullptr) {
-				mNextProcessor.get()->addDatum(newLatest);
-			}
+		if (!mInput->waitForPost()) return false;
+
+		Tout newLatest = processStep(mInput->output());
+
+		std::shared_ptr<PostboxInputBase<Tout>> currentOutput;
+
+		{
+			std::lock_guard<std::mutex> lock(mOutputMutex);
+			currentOutput = mOutput;
 		}
 
-		{//mLatestMutex lock scope
-			std::lock_guard<std::mutex> lock(mLatestMutex);
-			mLatest = std::move(newLatest);
-			mHasLatest = true;
+		if (currentOutput != nullptr){
+			return currentOutput->addDatum(newLatest, true);// blocks until datum read
 		}
+		return true;
 	}
 
 	/*
-	* Process data in the inner buffer and return an updated output
+	* Process data in the inner buffer and return an updated output.
+	* 
+	* @param previous Data used to genereate previous datum output. latest Latest datum at the input.
 	*/
-	virtual Tout processStep() = 0;
+	virtual Tout processStep(const std::list<Tin>& data) = 0;
 
 public:
-	explicit OutputFilterBase(std::size_t bufSize, Tout&& defaultLatest) :AsyncDataHandler<Tin>(1), mLatest(defaultLatest) {};
+	explicit OutputFilterBase(const std::size_t bufSize): mInput(new CircPostbox<Tin>(1,bufSize)) {};
 
-	OutputFilterBase() = delete;
-	OutputFilterBase(const OutputFilterBase& other) = delete;
-	OutputFilterBase(OutputFilterBase&& other) = delete;
-	OutputFilterBase& operator =(OutputFilterBase&& other) = delete;
-	OutputFilterBase& operator =(const OutputFilterBase& other) = delete;
-	virtual ~OutputFilterBase() = default;
-
-	bool getLatest(Tout& output) const {
-		std::lock_guard<std::mutex> lock(mLatestMutex);
-		if (mHasLatest) {
-			output = mLatest;
-			return true;
-		}
-		else return false;
+	void setOutput(std::shared_ptr<PostboxInputBase<Tout>> output) final {
+		std::lock_guard<std::mutex> lock(mOutputMutex);
+		if (mOutput != nullptr) mOutput->cancel();
+		mOutput = output;
 	}
 
-	void setNextProcessor(std::shared_ptr<AsyncDataHandler<Tout>> next) {
-		{//mNextProcessorMutex lock scope
-			std::lock_guard<std::mutex> lock(mNextProcessorMutex);
-			mNextProcessor = next;
-		}
+	std::shared_ptr<PostboxBase<Tin, std::list<Tin>>> getInput() const {
+		return mInput;
 	}
 
-	void unsetNextProcessor() {
-		{//mNextProcessorMutex lock scope
-			std::lock_guard<std::mutex> lock(mNextProcessorMutex);
-			mNextProcessor = std::shared_ptr<AsyncDataHandler<Tout>>();
-		}
-	}
 };
 
 #endif

@@ -3,28 +3,40 @@
 #include<list>
 
 #include "SingleInputFilterBase.h"
+#include "OutputFilterBase.h"
 //#include "CircPostbox.h"
 #include "SimplePostbox.h"
 
 #ifndef _TEST_MULTIPLYPROCESSOR_H_
 #define _TEST_MULTIPLYPROCESSOR_H_
 
-struct MultiplyProcessor : public SingleInputFilterBase<float, float, float> {
+struct MultiplyProcessor : public SingleInputFilterBase<float, float, std::list<float>> {
 	float scale = 1;
-	//explicit MultiplyProcessor() :SingleInputFilterBase<float, float, std::list<float>>(std::make_shared<CircPostbox<float>>(1)) {};
-	explicit MultiplyProcessor() :SingleInputFilterBase<float, float, float>(std::make_shared<SimplePostbox<float>>()) {};
-	virtual ~MultiplyProcessor() = default;
+	explicit MultiplyProcessor() :SingleInputFilterBase<float, float, std::list<float>>(std::make_shared<SimplePostbox<float>>()) {};
 protected:
-	/*float processStep(const std::list<float>& data) override{
-		float res = *data.cbegin() * scale;
-		std::cout << "In: "<< *data.cbegin() <<" Out:"<<res<<std::endl;
+	float processStep(const std::list<float>& data) override {
+		float res = *data.begin() * scale;
+		std::cout << "In: " << *data.begin() << " Out:" << res << std::endl;
 		return res;
-	}*/
+	}
+};
 
-	float processStep(const float& data) override {
-		float res = data * scale;
-		std::cout << "In: " << data << " Out:" << res << std::endl;
-		return res;
+struct AverageOutputProcessor : public OutputFilterBase<float, float> {
+	explicit AverageOutputProcessor() :OutputFilterBase<float, float>(2) {};
+protected:
+
+	float processStep(const std::list<float>& data) override {
+		float v = 0;
+		std::size_t n = data.size();
+		if (n > 0)
+		{
+			for (auto it = data.cbegin(); it != data.cend(); it++) {
+				v += *it;
+			}
+			v /= (float)n;
+		}
+		std::cout << "Average of last outputs: " << v << std::endl;
+		return v;
 	}
 };
 

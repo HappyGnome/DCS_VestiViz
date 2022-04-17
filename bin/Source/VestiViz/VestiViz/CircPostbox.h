@@ -17,6 +17,7 @@ class CircPostbox : public PostboxBase<T, std::list<T>> {
 	CircBuf<T> mOuterBuf;
 	std::mutex mOuterBufMutex;
 	std::condition_variable  mOuterBufCV;
+	std::condition_variable  mOuterBufFlushCV;
 
 	//Data passes from the outer buffer into the inner buffer
 	CircBuf<T> mInnerBuf;
@@ -28,6 +29,7 @@ class CircPostbox : public PostboxBase<T, std::list<T>> {
 		if (mCancelled) return false;
 		mInnerBuf.collectfrom(mOuterBuf);
 		mReadReceipt = true;
+		mOuterBufFlushCV.notify_all();
 		return true;
 	}
 
@@ -37,6 +39,7 @@ class CircPostbox : public PostboxBase<T, std::list<T>> {
 	void doAddDatum(const T& input){
 		mOuterBuf.push_back(input);
 		mOuterBufCV.notify_all();
+		mReadReceipt = false;
 	}
 
 	/**
@@ -45,38 +48,34 @@ class CircPostbox : public PostboxBase<T, std::list<T>> {
 	void doAddDatum(T&& input){
 		mOuterBuf.push_back(input);
 		mOuterBufCV.notify_all();
+		mReadReceipt = false;
+	}
+
+	bool doWaitForRead(std::unique_lock<std::mutex>& lock){
+		if (mCancelled) return false;
+		while (mReadReceipt == false) {
+			mOuterBufFlushCV.wait(lock);
+			if (mCancelled) return false;
+		}
+		return true;
 	}
 
 public:
 	explicit CircPostbox(std::size_t bufSize) :mInnerBuf(bufSize), mOuterBuf(bufSize) {};
+	explicit CircPostbox(std::size_t inBufSize, std::size_t outBufSize) :mInnerBuf(inBufSize), mOuterBuf(outBufSize) {};
 
-	void addDatum(const T& input) override {
-		std::lock_guard<std::mutex> lock(mOuterBufMutex);
+	bool addDatum(const T& input, bool waitForRead = false) override {
+		std::unique_lock<std::mutex> lock(mOuterBufMutex);
 		doAddDatum(input);
+		if (!waitForRead) return !mCancelled;
+		return doWaitForRead(lock);
 	}
 
-	void addDatum(T&& input) override{
-		std::lock_guard<std::mutex> lock(mOuterBufMutex);
+	bool addDatum(T&& input, bool waitForRead = false) override{
+		std::unique_lock<std::mutex> lock(mOuterBufMutex);
 		doAddDatum(input);
-	}
-
-	bool addDatumIfReadMatches(T&& input, bool match) override {
-		std::lock_guard<std::mutex> lock(mOuterBufMutex);
-		if (match != mReadReceipt) return false;
-		doAddDatum(input);
-		return true;
-	}
-
-	bool addDatumIfReadMatches(T& input, bool match) override {
-		std::lock_guard<std::mutex> lock(mOuterBufMutex);
-		if (match != mReadReceipt) return false;
-		doAddDatum(input);
-		return true;
-	}
-
-	void resetRead() override {
-		std::lock_guard<std::mutex> lock(mOuterBufMutex);
-		mReadReceipt = false;
+		if (!waitForRead) return !mCancelled;
+		return doWaitForRead(lock);
 	}
 
 	bool flushPost() override {

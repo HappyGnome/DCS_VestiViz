@@ -18,10 +18,6 @@ private:
 
 protected:
 
-	bool waitForInput() final {
-		return mInput -> waitForPost();
-	}
-
 	/**
 	 * Cancel processing loop as soon as possible.
 	 * Subsequent calls to waitForInput must return false and any blocking calls exit when possible.
@@ -30,12 +26,13 @@ protected:
 		mInput->cancel();
 	}
 
-	void process() final {
-
+	bool process() final {
+		if (!mInput->waitForPost()) return false;
 		Tout newLatest = processStep(mInput -> output() );
 		
 		std::lock_guard<std::mutex> lock(mOutputMutex);
-		if (mOutput != nullptr) mOutput->addDatum(newLatest);
+		if (mOutput != nullptr) return mOutput->addDatum(newLatest);
+		return true;
 	}
 
 	/*

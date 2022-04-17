@@ -42,10 +42,10 @@
     <ClInclude Include="PostboxInputBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SimplePostbox.h">
+    <ClInclude Include="PostboxBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PostboxBase.h">
+    <ClInclude Include="SimplePostbox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

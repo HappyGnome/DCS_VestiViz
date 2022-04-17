@@ -176,6 +176,7 @@
   <ItemGroup>
     <ClInclude Include="AsyncFilter.h" />
     <ClInclude Include="CircPostbox.h" />
+    <ClInclude Include="SimplePostbox.h" />
     <ClInclude Include="SingleInputFilterBase.h" />
     <ClInclude Include="CircBuf.h" />
     <ClInclude Include="framework.h" />
@@ -184,7 +185,6 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="PostboxInputBase.h" />
     <ClInclude Include="PostboxBase.h" />
-    <ClInclude Include="SimplePostbox.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />

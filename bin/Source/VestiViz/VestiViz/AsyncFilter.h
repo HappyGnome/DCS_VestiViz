@@ -16,16 +16,11 @@ class AsyncFilter {
 	std::thread mWorkerThread;
 
 	void workerFunc() {
-		while (waitForInput())
-		{
-			process();
-		}
+		while (process()){}
 	}
 protected:
-	virtual bool waitForInput() = 0;
 
-
-	virtual void process() = 0;
+	virtual bool process() = 0;
 
 	/**
 	 * Cancel processing loop as soon as possible.
