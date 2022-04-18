@@ -1,30 +1,45 @@
 #include <iostream>
 
-#include "MultiplyProcessor.h"
+#include "MultiplyFilter.h"
+#include "AverageFilter.h"
+#include "LoggerFilter.h"
+#include "ExpDecayFilter.h"
+
 using namespace std::chrono_literals;
 int main()
 {
-    MultiplyProcessor m1;
-    MultiplyProcessor m2;
+    MultiplyProcessor m1(2);
+    LogSIF l1("Doubled ");
+    ExpSIF e1(5);
+    LogSIF l2("Decay ");
     AverageOutputProcessor a1;
+    LogOF l3("Output ");
     auto input = m1.getInput();
 
-    m1.scale = 2;
-    m2.scale = 0.5;
-
-    m1.setOutput(m2.getInput());
-    m2.setOutput(a1.getInput());
+    m1.setOutput(l1.getInput());
+    l1.setOutput(e1.getInput());
+    e1.setOutput(l2.getInput());
+    l2 .setOutput(a1.getInput());
+    a1.setOutput(l2.getInput());
 
     m1.startProcessing();
-    m2.startProcessing();
+    l1.startProcessing();
+    e1.startProcessing();
+    l2.startProcessing();
     a1.startProcessing();
+    l3.startProcessing();
 
     for (int i = 0; i < 10; i++) {
-        input->addDatum(float(i));
-        std::this_thread::sleep_for(10ms);
+        input->addDatum(TDf{(float)i,0.01f*(float)i});
+        std::this_thread::sleep_for(150ms);
     }
-    std::cout << "End";
     m1.stopProcessing();
-    m2.stopProcessing();
+    l1.stopProcessing();
+    e1.stopProcessing();
+    l2.stopProcessing();
     a1.stopProcessing();
+    l3.stopProcessing();
+
+    std::cout << "End";
+
 }

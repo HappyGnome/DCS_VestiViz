@@ -5,10 +5,10 @@
 
 #include "CircPostbox.h"
 
-template <typename T>
-class SimplePostbox : public CircPostbox<T> {
+template <typename T,typename L>
+class SimplePostbox : public CircPostbox<T,L> {
 public:
-	SimplePostbox() :CircPostbox<T>(1) {};
+	SimplePostbox() :CircPostbox<T, L>(1) {};
 };
 
 

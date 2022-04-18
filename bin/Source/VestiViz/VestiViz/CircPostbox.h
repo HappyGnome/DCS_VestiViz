@@ -9,18 +9,18 @@
 #include"CircBuf.h"
 #include"PostboxBase.h"
 
-template <typename T>
-class CircPostbox : public PostboxBase<T, std::list<T>> {
+template <typename T, typename L>
+class CircPostbox : public PostboxBase<T, L> {
 
 	bool mCancelled = false;
 	bool mReadReceipt = false;
-	CircBuf<T> mOuterBuf;
+	CircBuf<T,L> mOuterBuf;
 	std::mutex mOuterBufMutex;
 	std::condition_variable  mOuterBufCV;
 	std::condition_variable  mOuterBufFlushCV;
 
 	//Data passes from the outer buffer into the inner buffer
-	CircBuf<T> mInnerBuf;
+	CircBuf<T, L> mInnerBuf;
 
 	/**
 	 * Call while holding mOuterBufMutex only
@@ -87,6 +87,7 @@ public:
 		std::lock_guard<std::mutex> lock(mOuterBufMutex);
 		mCancelled = true;
 		mOuterBufCV.notify_all();
+		mOuterBufFlushCV.notify_all();
 	}
 
 	bool waitForPost() override{
@@ -100,7 +101,7 @@ public:
 		return true;
 	}
 
-	const std::list<T>& output() const override{ return mInnerBuf.data(); }
+	const L& output() const override{ return mInnerBuf.data(); }
 
 	bool empty() const { return mInnerBuf.empty(); }
 };

@@ -7,8 +7,24 @@
 #include <list>
 #include <iterator>
 
-template <typename T> //Buffered object type
+template <typename T, typename L> //Buffered object type
 class CircBuf {
+	std::size_t mCapacity;
+public:
+	explicit CircBuf(std::size_t capacity) : mCapacity(capacity) {}
+
+	void push_back(const T& value) {}
+
+	void collectfrom(CircBuf<T,L>& other) {}
+
+	typename const L& data() const {}
+
+	bool empty() const {}
+};
+//-------------------------------------------------
+// List implementation
+template <typename T> //Buffered object type
+class CircBuf<T,std::list<T>> {
 	std::list<T> mBuf;
 	std::size_t mCapacity;
 
@@ -31,7 +47,7 @@ public:
 		trim();
 	}
 
-	void collectfrom(CircBuf<T> &other) {
+	void collectfrom(CircBuf<T, std::list<T>> &other) {
 		other.trim(mCapacity);
 
 		mBuf.splice(mBuf.end(), other.mBuf);
@@ -45,5 +61,11 @@ public:
 
 	bool empty() const { return mBuf.empty(); }
 };
+
+
+//-------------------------------------------------------------------
+//Vector implementation
+
+//TODO
 
 #endif

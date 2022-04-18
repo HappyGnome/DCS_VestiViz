@@ -176,11 +176,16 @@
   <ItemGroup>
     <ClInclude Include="AsyncFilter.h" />
     <ClInclude Include="CircPostbox.h" />
+    <ClInclude Include="ConvolveFilterAction.h" />
+    <ClInclude Include="ExpDecayFilterAction.h" />
+    <ClInclude Include="FilterActionBase.h" />
+    <ClInclude Include="Datalin.h" />
+    <ClInclude Include="TimedDatum.h" />
     <ClInclude Include="SimplePostbox.h" />
     <ClInclude Include="SingleInputFilterBase.h" />
     <ClInclude Include="CircBuf.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="DifDatumVec.h" />
+    <ClInclude Include="DatumArr.h" />
     <ClInclude Include="OutputFilterBase.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PostboxInputBase.h" />

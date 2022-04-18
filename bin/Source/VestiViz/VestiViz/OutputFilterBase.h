@@ -7,14 +7,18 @@
 
 #include "AsyncFilter.h"
 #include "CircPostbox.h"
+#include "FilterActionBase.h"
 
-template <typename Tin, typename Tout>
+template <typename Tin, typename Tout, typename L>
 class OutputFilterBase : public AsyncFilter<Tout> {
 private:
 	std::shared_ptr<PostboxInputBase<Tout>> mOutput;
+	std::shared_ptr<PostboxInputBase<Tout>> mOutputAwaited;//used only in processing thread, set only while holding mOutputMutex
 	std::mutex mOutputMutex;
 
-	std::shared_ptr<CircPostbox<Tin>> mInput;
+	std::shared_ptr<CircPostbox<Tin, L>> mInput;
+
+	std::unique_ptr < FilterActionBase<Tout, L>> mFilterAction;
 protected:
 
 	/**
@@ -23,36 +27,31 @@ protected:
 	 */
 	void cancel() final {
 		mInput->cancel();
+		{
+			std::lock_guard<std::mutex> lock(mOutputMutex);
+			if (mOutputAwaited != nullptr) mOutputAwaited->cancel();
+		}
 	}
 
 	bool process() final {
 
 		if (!mInput->waitForPost()) return false;
 
-		Tout newLatest = processStep(mInput->output());
-
-		std::shared_ptr<PostboxInputBase<Tout>> currentOutput;
+		Tout newLatest = mFilterAction->actOn(mInput->output());
 
 		{
 			std::lock_guard<std::mutex> lock(mOutputMutex);
-			currentOutput = mOutput;
+			mOutputAwaited = mOutput;
 		}
 
-		if (currentOutput != nullptr){
-			return currentOutput->addDatum(newLatest, true);// blocks until datum read
+		if (mOutputAwaited != nullptr){
+			return mOutputAwaited->addDatum(newLatest, true);// blocks until datum read
 		}
 		return true;
 	}
 
-	/*
-	* Process data in the inner buffer and return an updated output.
-	* 
-	* @param previous Data used to genereate previous datum output. latest Latest datum at the input.
-	*/
-	virtual Tout processStep(const std::list<Tin>& data) = 0;
-
 public:
-	explicit OutputFilterBase(const std::size_t bufSize): mInput(new CircPostbox<Tin>(1,bufSize)) {};
+	explicit OutputFilterBase(const std::size_t bufSize, std::unique_ptr <FilterActionBase<Tout, L>>&& action): mInput(new CircPostbox<Tin,L>(1,bufSize)), mFilterAction(std::move(action)) {};
 
 	void setOutput(std::shared_ptr<PostboxInputBase<Tout>> output) final {
 		std::lock_guard<std::mutex> lock(mOutputMutex);
@@ -60,7 +59,7 @@ public:
 		mOutput = output;
 	}
 
-	std::shared_ptr<PostboxBase<Tin, std::list<Tin>>> getInput() const {
+	std::shared_ptr<PostboxBase<Tin, L>> getInput() const {
 		return mInput;
 	}
 

@@ -7,6 +7,7 @@
 
 #include "AsyncFilter.h"
 #include "PostboxBase.h"
+#include "FilterActionBase.h"
 
 template <typename Tin, typename Tout, typename L>
 class SingleInputFilterBase : public AsyncFilter<Tout>{
@@ -16,6 +17,7 @@ private:
 
 	std::shared_ptr<PostboxBase<Tin,L>> mInput;
 
+	std::unique_ptr <FilterActionBase<Tout, L>> mFilterAction;
 protected:
 
 	/**
@@ -28,20 +30,15 @@ protected:
 
 	bool process() final {
 		if (!mInput->waitForPost()) return false;
-		Tout newLatest = processStep(mInput -> output() );
+		Tout newLatest = mFilterAction->actOn(mInput -> output() );
 		
 		std::lock_guard<std::mutex> lock(mOutputMutex);
 		if (mOutput != nullptr) return mOutput->addDatum(newLatest);
 		return true;
 	}
 
-	/*
-	* Process data in the inner buffer and return an updated output
-	*/
-	virtual Tout processStep(const L& data) = 0;
-
 public:
-	explicit SingleInputFilterBase(const std::shared_ptr<PostboxBase<Tin, L>>& input):mInput(input){};
+	explicit SingleInputFilterBase(const std::shared_ptr<PostboxBase<Tin, L>>& input, std::unique_ptr <FilterActionBase<Tout, L>>&& action):mInput(input), mFilterAction(std::move(action)) {};
 
 	void setOutput(std::shared_ptr<PostboxInputBase<Tout>> output) final {
 		std::lock_guard<std::mutex> lock(mOutputMutex);

@@ -30,6 +30,7 @@ protected:
 public:
 
 	void startProcessing(){
+		if (!mWorkerThread.joinable())
 		mWorkerThread = std::thread(&AsyncFilter::workerFunc, this);
 	}
 
