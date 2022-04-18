@@ -62,7 +62,7 @@ class CircPostbox : public PostboxBase<T, std::list<T>> {
 
 public:
 	explicit CircPostbox(std::size_t bufSize) :mInnerBuf(bufSize), mOuterBuf(bufSize) {};
-	explicit CircPostbox(std::size_t inBufSize, std::size_t outBufSize) :mInnerBuf(inBufSize), mOuterBuf(outBufSize) {};
+	explicit CircPostbox(std::size_t inputBufSize, std::size_t outputBufSize) :mInnerBuf(outputBufSize), mOuterBuf(inputBufSize) {};
 
 	bool addDatum(const T& input, bool waitForRead = false) override {
 		std::unique_lock<std::mutex> lock(mOuterBufMutex);

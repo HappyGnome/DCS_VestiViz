@@ -13,10 +13,9 @@ class CircBuf {
 	std::size_t mCapacity;
 
 	void trim(std::size_t n){
-		std::size_t excess = mBuf.size() - n;
-		if (excess > 0) {
+		if (mBuf.size() > n) {
 			auto last = mBuf.cbegin();
-			std::advance(last, excess);
+			std::advance(last, mBuf.size() - n);
 			mBuf.erase(mBuf.cbegin(), last);
 		}
 	}
