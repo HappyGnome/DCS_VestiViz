@@ -10,7 +10,7 @@ int main()
 {
     MultiplyProcessor m1(2);
     LogSIF l1("Doubled ");
-    ExpSIF e1(5);
+    ExpSIF e1(1);
     LogSIF l2("Decay ");
     AverageOutputProcessor a1;
     LogOF l3("Output ");
@@ -20,7 +20,7 @@ int main()
     l1.setOutput(e1.getInput());
     e1.setOutput(l2.getInput());
     l2 .setOutput(a1.getInput());
-    a1.setOutput(l2.getInput());
+    a1.setOutput(l3.getInput());
 
     m1.startProcessing();
     l1.startProcessing();
@@ -29,9 +29,9 @@ int main()
     a1.startProcessing();
     l3.startProcessing();
 
-    for (int i = 0; i < 10; i++) {
-        input->addDatum(TDf{(float)i,0.01f*(float)i});
-        std::this_thread::sleep_for(150ms);
+    for (int i = 0; i < 1000; i++) {
+        input->addDatum(TDf{(float)i,0.001f*(float)i});
+        std::this_thread::sleep_for(15ms);
     }
     m1.stopProcessing();
     l1.stopProcessing();

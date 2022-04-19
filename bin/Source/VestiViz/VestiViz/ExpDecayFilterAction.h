@@ -15,6 +15,7 @@ template <typename S, typename T, typename L>
 class ExpDecayFilterAction : public FilterActionBase<TimedDatum<S, T>, L> {
 	S mHalflife;
 	S mLastTime = 0;
+	S mNormalizationFactor = 0;
 	TimedDatum<S, T> mState= {0,0};
 public:
 	explicit ExpDecayFilterAction(S halflife) : mHalflife(halflife) {};
@@ -24,13 +25,24 @@ public:
 			S dt = it->t - mLastTime;
 
 			S exponent = pow((S)0.5, dt / mHalflife);
-		
-			Datalin<S, T>::linEq(mState.datum,exponent, it->datum, 1.0 - exponent);
-			mState.t = (mState.t * exponent) + (it->t * ((S)1.0 - exponent));
+			S conjExponent = 1 - exponent;
+			
+			mNormalizationFactor = mNormalizationFactor * exponent + conjExponent;
+
+			Datalin<S, T>::linEq(mState.datum, exponent, it->datum, conjExponent);
+			mState.t = (mState.t * exponent) + (it->t * conjExponent);
 
 			mLastTime = it->t;
 		}
-		return mState;
+
+		TimedDatum<S, T> ret = mState;
+
+		if (mNormalizationFactor > 0) {
+			ret.datum *= 1/mNormalizationFactor;
+			ret.t /= mNormalizationFactor;
+		}
+
+		return ret;
 	};
 };
 
