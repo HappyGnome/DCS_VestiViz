@@ -180,6 +180,7 @@
     <ClInclude Include="ExpDecayFilterAction.h" />
     <ClInclude Include="FilterActionBase.h" />
     <ClInclude Include="Datalin.h" />
+    <ClInclude Include="AccelByRegressionFilterAction.h" />
     <ClInclude Include="TimedDatum.h" />
     <ClInclude Include="SimplePostbox.h" />
     <ClInclude Include="SingleInputFilterBase.h" />

@@ -78,6 +78,9 @@
     <ClInclude Include="Datalin.h">
       <Filter>Header Files\Datums</Filter>
     </ClInclude>
+    <ClInclude Include="AccelByRegressionFilterAction.h">
+      <Filter>Header Files\FilterActions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

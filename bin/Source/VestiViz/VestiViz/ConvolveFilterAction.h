@@ -37,7 +37,7 @@ public:
 		std::size_t window = std::min(mKernel.size(), data.size());
 		auto itK = mKernel.cbegin();
 		auto itT = mTimeKernel.cbegin();
-		auto itD = data.crend();
+		auto itD = data.crbegin();
 		TimedDatum<S, T> result = TimedDatum<S, T>();
 
 		for (std::size_t i = 0; i < window; i++) {

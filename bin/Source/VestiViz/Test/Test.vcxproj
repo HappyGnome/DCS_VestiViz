@@ -148,6 +148,7 @@
     <ClInclude Include="ExpDecayFilter.h" />
     <ClInclude Include="LoggerFilter.h" />
     <ClInclude Include="MultiplyFilter.h" />
+    <ClInclude Include="RegDiffFilter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
