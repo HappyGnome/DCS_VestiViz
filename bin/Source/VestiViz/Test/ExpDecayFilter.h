@@ -12,10 +12,10 @@
 #ifndef _TEST_EXPDECAYFILTER_H_
 #define _TEST_EXPDECAYFILTER_H_
 
-struct ExpSIF : public SingleInputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list> {
-	explicit ExpSIF(float halflife) :SingleInputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list>
-		(std::make_shared<SimplePostbox<TimedDatum<float, float>, std::list>>(),
-		std::make_unique<ExpDecayFilterAction<float, float, std::list>>(halflife)) {};
+struct ExpSIF : public SingleInputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, CircBufL> {
+	explicit ExpSIF(float halflife) :SingleInputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, CircBufL>
+		(std::make_shared<SimplePostbox<TimedDatum<float, float>>>(),
+		std::make_unique<ExpDecayFilterAction<float, float, CircBufL>>(halflife)) {};
 	virtual ~ExpSIF() = default;
 };
 

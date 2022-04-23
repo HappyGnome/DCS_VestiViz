@@ -16,7 +16,7 @@ class ExpDecayFilterAction : public FilterActionBase<TimedDatum<S, T>,TimedDatum
 	S mHalflife;
 	S mLastTime = 0;
 	S mNormalizationFactor = 0;
-	TimedDatum<S, T> mState= {0,0};
+	TimedDatum<S, T> mState= {0,Datalin<S,T>::zero()};
 public:
 	explicit ExpDecayFilterAction(S halflife) : mHalflife(halflife) {};
 

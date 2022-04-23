@@ -8,39 +8,25 @@
 #include <math.h>
 
 #include"Datalin.h"
+#include"Datacomp.h"
 #include "TimedDatum.h"
 #include "FilterActionBase.h"
 
-template <typename S, typename T, typename L>
-class QuickCompressFilterAction : public FilterActionBase<TimedDatum<S, T>, L> {
-	S mHalflife;
-	S mLastTime = 0;
-	S mNormalizationFactor = 0;
-	TimedDatum<S, T> mState = { 0,0 };
+template <typename S, typename T, template<typename, typename> typename L, typename LAlloc = std::allocator<TimedDatum<S, T>>>
+class QuickCompressFilterAction : public FilterActionBase<TimedDatum<S, T>, TimedDatum<S, T>, L, LAlloc> {
+	T mCalib;
 public:
-	explicit ExpDecayFilterAction(S halflife) : mHalflife(halflife) {};
+	explicit QuickCompressFilterAction(T calibration) : mCalib(calibration) {};
 
-	TimedDatum<S, T> actOn(const L& data) override {
-		for (auto it = data.cbegin(); it != data.cend(); it++) {
-			S dt = it->t - mLastTime;
+	TimedDatum<S, T> actOn(const L<TimedDatum<S, T>, LAlloc>& data) override {
+		if (data.empty()) return Datalin<S, T>::zero();
 
-			S exponent = pow((S)0.5, dt / mHalflife);
-			S conjExponent = 1 - exponent;
+		TimedDatum<S, T> ret;
 
-			mNormalizationFactor = mNormalizationFactor * exponent + conjExponent;
+		TimedDatum<S, T> last = *(data.crbegin());
 
-			Datalin<S, T>::linEq(mState.datum, exponent, it->datum, conjExponent);
-			mState.t = (mState.t * exponent) + (it->t * conjExponent);
-
-			mLastTime = it->t;
-		}
-
-		TimedDatum<S, T> ret = mState;
-
-		if (mNormalizationFactor > 0) {
-			ret.datum *= 1 / mNormalizationFactor;
-			ret.t /= mNormalizationFactor;
-		}
+		ret.datum = Datacomp<S, T>::qComp(last.datum, mCalib);
+		ret.t = last.t;
 
 		return ret;
 	};

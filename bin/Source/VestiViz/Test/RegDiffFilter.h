@@ -13,10 +13,10 @@
 
 using td = TimedDatum<float, float>;
 
-struct RegDiffSIF : public SingleInputFilterBase<td, td, std::list> {
-	explicit RegDiffSIF(std::size_t window) :SingleInputFilterBase<td, td, std::list>
-		(std::make_shared<CircPostbox<td, std::list>>(window),
-			std::make_unique<AccelByRegressionFilterAction<float, float, std::list>>()) {};
+struct RegDiffSIF : public SingleInputFilterBase<td, td, CircBufL> {
+	explicit RegDiffSIF(std::size_t window) :SingleInputFilterBase<td, td, CircBufL>
+		(std::make_shared<CircPostbox<td>>(window),
+			std::make_unique<AccelByRegressionFilterAction<float, float, CircBufL>>()) {};
 	virtual ~RegDiffSIF() = default;
 };
 

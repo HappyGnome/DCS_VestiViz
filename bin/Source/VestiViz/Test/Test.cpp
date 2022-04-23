@@ -7,7 +7,7 @@
 #include "ExpDecayFilter.h"
 #include "RegDiffFilter.h"
 
-#include "DatumArr.h"
+#include "DatumMatrix.h"
 
 using namespace std::chrono_literals;
 
@@ -90,5 +90,11 @@ int main()
     Test1();
     Test2();
     Test3();
+
+    DatumMatrix<float, 3, 2> mat = DatumMatrix<float, 3, 2>(1.0f, 0.0f, 1.0f, 2.0f, 1.0f, 0.0f);
+    std::cout << mat <<std::endl;
+    DatumArr<float,float, 2> vec = DatumArr<float,float, 2>(1.0f, 2.0f);
+    std::cout << vec << std::endl;
+    std::cout << mat.applyTo(vec) << std::endl;
 
 }

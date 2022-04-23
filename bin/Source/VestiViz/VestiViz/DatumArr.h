@@ -20,6 +20,8 @@ public:
 
 	explicit DatumArr(const std::array<V, N>&& v) : mVec(v) {};
 
+	explicit DatumArr(const V& v) : mVec() { mVec.fill(v); }
+
 	template <typename... Args>
 	explicit DatumArr(Args... args) : mVec({ args... }) {};
 
@@ -86,6 +88,10 @@ public:
 			mVec[i] -= other.mVec[i];
 		}
 		return *this;
+	}
+
+	static DatumArr zero() {
+		return DatumArr<S, V, N>(Datalin<S, V>::zero());
 	}
 
 	DatumArr& linEq(const DatumArr<S, V, N>& y, const S scaleY) {

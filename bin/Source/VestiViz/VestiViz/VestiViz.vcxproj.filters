@@ -87,8 +87,11 @@
     <ClInclude Include="Datacomp.h">
       <Filter>Header Files\Datums</Filter>
     </ClInclude>
-    <ClInclude Include="MultiInputFilterBase.h">
+    <ClInclude Include="DoubleInputFilterBase.h">
       <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="DatumMatrix.h">
+      <Filter>Header Files\Datums</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

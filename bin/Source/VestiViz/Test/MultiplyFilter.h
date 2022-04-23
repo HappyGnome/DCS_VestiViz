@@ -13,23 +13,23 @@
 
 using TDf = TimedDatum<float, float> ;
 
-class MultiplyAction:public FilterActionBase<TDf,TDf, std::list> {
+class MultiplyAction:public FilterActionBase<TDf,TDf, CircBufL> {
 	float mScale;
 public:
 	explicit MultiplyAction(float scale):mScale(scale){};
 	virtual ~MultiplyAction() = default;
 
-	TDf actOn(const std::list<TDf>& data) override {
+	TDf actOn(const CircBufL<TDf>& data) override {
 		TDf res = TDf();
-		res.datum = data.begin()->datum * mScale;
-		res.t = data.begin()->t;
+		res.datum = data.cbegin()->datum * mScale;
+		res.t = data.cbegin()->t;
 		return res;
 	}
 };
 
-struct MultiplyProcessor : public SingleInputFilterBase<TDf, TDf, std::list> {
-	explicit MultiplyProcessor(float scale) :SingleInputFilterBase<TDf, TDf, std::list>
-		(std::make_shared<SimplePostbox<TDf, std::list>>(),
+struct MultiplyProcessor : public SingleInputFilterBase<TDf, TDf, CircBufL> {
+	explicit MultiplyProcessor(float scale) :SingleInputFilterBase<TDf, TDf, CircBufL>
+		(std::make_shared<SimplePostbox<TDf>>(),
 		 std::make_unique<MultiplyAction>(scale)) {};
 	virtual ~MultiplyProcessor() {};
 };

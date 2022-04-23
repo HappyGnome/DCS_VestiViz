@@ -5,6 +5,11 @@
 template <typename S, typename T>
 class Datalin {
 public:
+
+	static T zero() {
+		return T::zero();
+	}
+
 	/********************************
 	* Lin - Generic.
 	*********************************/
@@ -31,6 +36,11 @@ public:
 template <typename S>
 class Datalin<S,S>{
 public:
+
+	static S zero() {
+		return (S) 0;
+	}
+
 	/********************************
 	* Lin
 	*********************************/

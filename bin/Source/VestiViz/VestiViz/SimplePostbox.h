@@ -5,10 +5,10 @@
 
 #include "CircPostbox.h"
 
-template <typename T,template<typename,typename> typename L, typename LAlloc = std::allocator<T>>
-class SimplePostbox : public CircPostbox<T,L,LAlloc> {
+template <typename T, typename LAlloc = std::allocator<T>>
+class SimplePostbox : public CircPostbox<T,LAlloc> {
 public:
-	SimplePostbox() :CircPostbox<T, L,LAlloc>(1) {};
+	SimplePostbox() :CircPostbox<T, LAlloc>(1) {};
 };
 
 

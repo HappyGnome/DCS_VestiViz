@@ -9,16 +9,16 @@
 #include "CircPostbox.h"
 #include "FilterActionBase.h"
 
-template <typename Tin, typename Tout, template<typename, typename> typename L, typename LAlloc = std::allocator<Tin>>
+template <typename Tin, typename Tout, typename LAlloc = std::allocator<Tin>>
 class OutputFilterBase : public AsyncFilter<Tout> {
 private:
 	std::shared_ptr<PostboxInputBase<Tout>> mOutput;
 	std::shared_ptr<PostboxInputBase<Tout>> mOutputAwaited;//used only in processing thread, set only while holding mOutputMutex
 	std::mutex mOutputMutex;
 
-	std::shared_ptr<CircPostbox<Tin, L, LAlloc>> mInput;
+	std::shared_ptr<CircPostbox<Tin, LAlloc>> mInput;
 
-	std::unique_ptr < FilterActionBase<Tin,Tout, L, LAlloc>> mFilterAction;
+	std::unique_ptr < FilterActionBase<Tin,Tout, CircBufL, LAlloc>> mFilterAction;
 protected:
 
 	/**
@@ -51,7 +51,7 @@ protected:
 	}
 
 public:
-	explicit OutputFilterBase(const std::size_t bufSize, std::unique_ptr <FilterActionBase<Tin,Tout, L, LAlloc>>&& action): mInput(new CircPostbox<Tin,L,LAlloc>(1,bufSize)), mFilterAction(std::move(action)) {};
+	explicit OutputFilterBase(const std::size_t bufSize, std::unique_ptr <FilterActionBase<Tin,Tout, CircBufL, LAlloc>>&& action): mInput(new CircPostbox<Tin,LAlloc>(1,bufSize)), mFilterAction(std::move(action)) {};
 
 	void setOutput(std::shared_ptr<PostboxInputBase<Tout>> output) final {
 		std::lock_guard<std::mutex> lock(mOutputMutex);
@@ -59,7 +59,7 @@ public:
 		mOutput = output;
 	}
 
-	std::shared_ptr<PostboxBase<Tin, L, LAlloc>> getInput() const {
+	std::shared_ptr<PostboxBase<Tin, CircBufL, LAlloc>> getInput() const {
 		return mInput;
 	}
 
