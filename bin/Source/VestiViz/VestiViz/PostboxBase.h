@@ -6,7 +6,7 @@
 
 #include "PostboxInputBase.h"
 
-template <typename T, typename L>
+template <typename T, template<typename,typename> typename L, typename LAlloc = std::allocator<T>>
 class PostboxBase : public PostboxInputBase<T> {
 public:
 
@@ -16,7 +16,7 @@ public:
 	 *
 	 * @return iterator to beginning of output.
 	 */
-	virtual const L& output() const = 0;
+	virtual const L<T,LAlloc>& output() const = 0;
 
 	/**
 	 * Test for empty output.

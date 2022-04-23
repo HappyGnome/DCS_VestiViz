@@ -7,6 +7,8 @@
 #include "ExpDecayFilter.h"
 #include "RegDiffFilter.h"
 
+#include "DatumArr.h"
+
 using namespace std::chrono_literals;
 
 
@@ -48,7 +50,7 @@ void Test1() {
 
 
 void Test2() {
-    RegDiffSIF rd1(32);
+    RegDiffSIF rd1(16);
     LogSIF l1("Accel: ");
   
     auto input = rd1.getInput();
@@ -72,9 +74,21 @@ void Test2() {
     std::cout << "End";
 }
 
+void Test3() {
+    Vec3Datum<float> myVec( 2.0f,3.0f,4.0f );
+
+    Vec3Datum<float> compScale1(2.0f, 3.0f, 4.0f);
+    std::cout << Datacomp<float, Vec3Datum<float>>::qComp(myVec, compScale1) << std::endl;
+    Datacomp<float, Vec3Datum<float>>::qCompEq(myVec, compScale1);
+    std::cout << myVec << std::endl;
+
+    std::cout << "End";
+}
+
 int main()
 {
     Test1();
     Test2();
+    Test3();
 
 }

@@ -177,10 +177,13 @@
     <ClInclude Include="AsyncFilter.h" />
     <ClInclude Include="CircPostbox.h" />
     <ClInclude Include="ConvolveFilterAction.h" />
+    <ClInclude Include="Datacomp.h" />
     <ClInclude Include="ExpDecayFilterAction.h" />
     <ClInclude Include="FilterActionBase.h" />
     <ClInclude Include="Datalin.h" />
     <ClInclude Include="AccelByRegressionFilterAction.h" />
+    <ClInclude Include="MultiInputFilterBase.h" />
+    <ClInclude Include="QuickCompressFilterAction.h" />
     <ClInclude Include="TimedDatum.h" />
     <ClInclude Include="SimplePostbox.h" />
     <ClInclude Include="SingleInputFilterBase.h" />

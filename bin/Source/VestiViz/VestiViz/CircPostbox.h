@@ -9,18 +9,18 @@
 #include"CircBuf.h"
 #include"PostboxBase.h"
 
-template <typename T, typename L>
+template <typename T, template<typename,typename> typename L, typename LAlloc = std::allocator<T>>
 class CircPostbox : public PostboxBase<T, L> {
 
 	bool mCancelled = false;
 	bool mReadReceipt = false;
-	CircBuf<T,L> mOuterBuf;
+	CircBuf<T,L, LAlloc> mOuterBuf;
 	std::mutex mOuterBufMutex;
 	std::condition_variable  mOuterBufCV;
 	std::condition_variable  mOuterBufFlushCV;
 
 	//Data passes from the outer buffer into the inner buffer
-	CircBuf<T, L> mInnerBuf;
+	CircBuf<T, L, LAlloc> mInnerBuf;
 
 	/**
 	 * Call while holding mOuterBufMutex only
@@ -101,7 +101,7 @@ public:
 		return true;
 	}
 
-	const L& output() const override{ return mInnerBuf.data(); }
+	const L<T,LAlloc>& output() const override{ return mInnerBuf.data(); }
 
 	bool empty() const { return mInnerBuf.empty(); }
 };

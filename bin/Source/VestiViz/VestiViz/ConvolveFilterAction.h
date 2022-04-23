@@ -10,8 +10,8 @@
 #include "FilterActionBase.h"
 #include "Datalin.h"
 
-template <typename S, typename T, typename L>
-class ConvolveFilterAction : public FilterActionBase<TimedDatum<S,T>,L>{
+template <typename S, typename T, template<typename,typename> typename L, typename LAlloc = std::allocator<TimedDatum<S, T>>>
+class ConvolveFilterAction : public FilterActionBase<TimedDatum<S, T>,TimedDatum<S,T>,L,LAlloc>{
 	std::vector<S> mKernel;
 	std::vector<S> mTimeKernel;
 
@@ -33,7 +33,7 @@ public:
 		makeTimeKernel();
 	}
 
-	TimedDatum<S, T> actOn(const L& data) override {
+	TimedDatum<S, T> actOn(const L<TimedDatum<S, T>,LAlloc>& data) override {
 		std::size_t window = std::min(mKernel.size(), data.size());
 		auto itK = mKernel.cbegin();
 		auto itT = mTimeKernel.cbegin();

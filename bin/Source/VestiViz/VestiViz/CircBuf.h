@@ -7,7 +7,7 @@
 #include <list>
 #include <iterator>
 
-template <typename T, typename L> //Buffered object type
+template <typename T, template<typename,typename> typename L, typename LAlloc = std::allocator<T>> //Buffered object type
 class CircBuf {
 	std::size_t mCapacity;
 public:
@@ -15,16 +15,16 @@ public:
 
 	void push_back(const T& value) {}
 
-	void collectfrom(CircBuf<T,L>& other) {}
+	void collectfrom(CircBuf<T,L,LAlloc>& other) {}
 
-	typename const L& data() const {}
+	typename const L<T, LAlloc>& data() const {}
 
 	bool empty() const {}
 };
 //-------------------------------------------------
 // List implementation
-template <typename T> //Buffered object type
-class CircBuf<T,std::list<T>> {
+template <typename T, typename LAlloc> //Buffered object type
+class CircBuf<T,std::list, LAlloc> {
 	std::list<T> mBuf;
 	std::size_t mCapacity;
 
@@ -47,7 +47,7 @@ public:
 		trim();
 	}
 
-	void collectfrom(CircBuf<T, std::list<T>> &other) {
+	void collectfrom(CircBuf<T, std::list,LAlloc> &other) {
 		other.trim(mCapacity);
 
 		mBuf.splice(mBuf.end(), other.mBuf);

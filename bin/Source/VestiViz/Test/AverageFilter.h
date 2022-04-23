@@ -11,10 +11,10 @@
 #ifndef _TEST_AVERAGEFILTER_H_
 #define _TEST_AVERAGEFILTER_H_
 
-struct AverageOutputProcessor : public OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list<TimedDatum<float, float>>> {
-	explicit AverageOutputProcessor() :OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list<TimedDatum<float, float>>>
+struct AverageOutputProcessor : public OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list> {
+	explicit AverageOutputProcessor() :OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list>
 		(8,
-			std::make_unique<ConvolveFilterAction<float,float, std::list<TimedDatum<float, float>>>>(std::vector<float>(7,0.5))) {};
+			std::make_unique<ConvolveFilterAction<float,float, std::list>>(std::vector<float>(7,0.5))) {};
 };
 
 #endif

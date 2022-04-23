@@ -11,11 +11,11 @@
 #include "TimedDatum.h"
 #include "FilterActionBase.h"
 
-template <typename S, typename T, typename L>
-class AccelByRegressionFilterAction : public FilterActionBase<TimedDatum<S, T>, L> {
+template <typename S, typename T, template<typename, typename> typename L, typename LAlloc = std::allocator<TimedDatum<S, T>>>
+class AccelByRegressionFilterAction : public FilterActionBase<TimedDatum<S, T>, TimedDatum<S, T>, L, LAlloc> {
 
 public:
-	TimedDatum<S, T> actOn(const L& data) override {
+	TimedDatum<S, T> actOn(const L<TimedDatum<S, T>, LAlloc>& data) override {
 
 		std::size_t n = data.size();
 		TimedDatum<S, T> ret = { 0,0 };

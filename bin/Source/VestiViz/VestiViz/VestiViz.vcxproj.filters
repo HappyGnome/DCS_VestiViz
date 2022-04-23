@@ -81,6 +81,15 @@
     <ClInclude Include="AccelByRegressionFilterAction.h">
       <Filter>Header Files\FilterActions</Filter>
     </ClInclude>
+    <ClInclude Include="QuickCompressFilterAction.h">
+      <Filter>Header Files\FilterActions</Filter>
+    </ClInclude>
+    <ClInclude Include="Datacomp.h">
+      <Filter>Header Files\Datums</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiInputFilterBase.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

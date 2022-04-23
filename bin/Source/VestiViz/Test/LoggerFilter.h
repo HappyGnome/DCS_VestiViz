@@ -10,7 +10,7 @@
 //#include "CircPostbox.h"
 #include "SimplePostbox.h"
 
-class LogAction :public FilterActionBase<TimedDatum<float, float>, std::list<TimedDatum<float, float>>> {
+class LogAction :public FilterActionBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list> {
 	std::string mPrefix;
 public:
 	LogAction(const std::string& prefix) :mPrefix(prefix) {};
@@ -22,13 +22,13 @@ public:
 };
 
 
-struct LogSIF : public SingleInputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list<TimedDatum<float, float>>> {
-	explicit LogSIF(const std::string& prefix) :SingleInputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list<TimedDatum<float, float>>>
-		(std::make_shared<SimplePostbox<TimedDatum<float, float>, std::list<TimedDatum<float, float>>>>(),
+struct LogSIF : public SingleInputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list> {
+	explicit LogSIF(const std::string& prefix) :SingleInputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list>
+		(std::make_shared<SimplePostbox<TimedDatum<float, float>, std::list>>(),
 		 std::make_unique<LogAction>(prefix)) {};
 };
-struct LogOF : public OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list<TimedDatum<float, float>>> {
-	explicit LogOF(const std::string& prefix) :OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list<TimedDatum<float, float>>>
+struct LogOF : public OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list> {
+	explicit LogOF(const std::string& prefix) :OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, std::list>
 		(1,
 		std::make_unique<LogAction>(prefix)) {};
 };

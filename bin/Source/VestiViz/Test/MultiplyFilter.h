@@ -13,7 +13,7 @@
 
 using TDf = TimedDatum<float, float> ;
 
-class MultiplyAction:public FilterActionBase<TDf, std::list<TDf>> {
+class MultiplyAction:public FilterActionBase<TDf,TDf, std::list> {
 	float mScale;
 public:
 	explicit MultiplyAction(float scale):mScale(scale){};
@@ -27,9 +27,9 @@ public:
 	}
 };
 
-struct MultiplyProcessor : public SingleInputFilterBase<TDf, TDf, std::list<TDf>> {
-	explicit MultiplyProcessor(float scale) :SingleInputFilterBase<TDf, TDf, std::list<TDf>>
-		(std::make_shared<SimplePostbox<TDf, std::list<TDf>>>(),
+struct MultiplyProcessor : public SingleInputFilterBase<TDf, TDf, std::list> {
+	explicit MultiplyProcessor(float scale) :SingleInputFilterBase<TDf, TDf, std::list>
+		(std::make_shared<SimplePostbox<TDf, std::list>>(),
 		 std::make_unique<MultiplyAction>(scale)) {};
 	virtual ~MultiplyProcessor() {};
 };

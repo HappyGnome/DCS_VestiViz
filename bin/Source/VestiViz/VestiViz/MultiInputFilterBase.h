@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef _SINGLEINPUTFILTERBASE_H_
-#define _SINGLEINPUTFILTERBASE_H_
+#ifndef _MULTIINPUTFILTERBASE_H_
+#define _MULTIINPUTFILTERBASE_H_
 
 #include<mutex>
 
@@ -9,15 +9,15 @@
 #include "PostboxBase.h"
 #include "FilterActionBase.h"
 
-template <typename Tin, typename Tout, template<typename, typename> typename L, typename LAlloc = std::allocator<Tin>>
-class SingleInputFilterBase : public AsyncFilter<Tout>{
+template <typename Tin, typename Tout, typename... L>
+class SingleInputFilterBase : public AsyncFilter<Tout> {
 private:
 	std::shared_ptr<PostboxInputBase<Tout>> mOutput;
 	std::mutex mOutputMutex;
 
-	std::shared_ptr<PostboxBase<Tin,L,LAlloc>> mInput;
+	std::array<std::shared_ptr<PostboxBase<Tin, L>>,N> mInput;
 
-	std::unique_ptr <FilterActionBase<Tin,Tout, L,LAlloc>> mFilterAction;
+	std::unique_ptr <MultiFilterActionBase<Tout, L>> mFilterAction;
 protected:
 
 	/**
@@ -30,22 +30,22 @@ protected:
 
 	bool process() final {
 		if (!mInput->waitForPost()) return false;
-		Tout newLatest = mFilterAction->actOn(mInput -> output() );
-		
+		Tout newLatest = mFilterAction->actOn(mInput->output());
+
 		std::lock_guard<std::mutex> lock(mOutputMutex);
 		if (mOutput != nullptr) return mOutput->addDatum(newLatest);
 		return true;
 	}
 
 public:
-	explicit SingleInputFilterBase(const std::shared_ptr<PostboxBase<Tin, L, LAlloc>>& input, std::unique_ptr <FilterActionBase<Tin,Tout, L, LAlloc>>&& action):mInput(input), mFilterAction(std::move(action)) {};
+	explicit SingleInputFilterBase(const std::shared_ptr<PostboxBase<Tin, L>>& input, std::unique_ptr <FilterActionBase<Tout, L>>&& action) :mInput(input), mFilterAction(std::move(action)) {};
 
 	void setOutput(std::shared_ptr<PostboxInputBase<Tout>> output) final {
 		std::lock_guard<std::mutex> lock(mOutputMutex);
 		mOutput = output;
 	}
 
-	std::shared_ptr<PostboxBase<Tin, L, LAlloc>> getInput() const{
+	std::shared_ptr<PostboxBase<Tin, L>> getInput() const {
 		return mInput;
 	}
 
