@@ -23,9 +23,6 @@
     <ClInclude Include="MultiplyFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ExpDecayFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="AverageFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -33,6 +30,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RegDiffFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuickCompressFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

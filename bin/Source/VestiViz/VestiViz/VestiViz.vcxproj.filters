@@ -28,6 +28,9 @@
     <Filter Include="Header Files\Postboxes">
       <UniqueIdentifier>{70be1ac8-e3f6-47d2-801d-bb7129fbd122}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Filters\Implementations">
+      <UniqueIdentifier>{d92bc93c-0850-4603-9f5c-e3c935f27293}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -92,6 +95,30 @@
     </ClInclude>
     <ClInclude Include="DatumMatrix.h">
       <Filter>Header Files\Datums</Filter>
+    </ClInclude>
+    <ClInclude Include="DynMatMultFilterAction.h">
+      <Filter>Header Files\FilterActions</Filter>
+    </ClInclude>
+    <ClInclude Include="StatMatMultFilterAction.h">
+      <Filter>Header Files\FilterActions</Filter>
+    </ClInclude>
+    <ClInclude Include="LinCombFilterAction.h">
+      <Filter>Header Files\FilterActions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Test\LinCombDIF.h">
+      <Filter>Header Files\Filters\Implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Test\ExpDecaySIF.h">
+      <Filter>Header Files\Filters\Implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="QCompSIF.h">
+      <Filter>Header Files\Filters\Implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvOutF.h">
+      <Filter>Header Files\Filters\Implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="RegDiffSIF.h">
+      <Filter>Header Files\Filters\Implementations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

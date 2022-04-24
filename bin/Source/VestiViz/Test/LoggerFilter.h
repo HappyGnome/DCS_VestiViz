@@ -27,9 +27,9 @@ struct LogSIF : public SingleInputFilterBase<TimedDatum<float, float>, TimedDatu
 		(std::make_shared<SimplePostbox<TimedDatum<float, float>>>(),
 		 std::make_unique<LogAction>(prefix)) {};
 };
-struct LogOF : public OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>> {
-	explicit LogOF(const std::string& prefix) :OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>>
-		(1,
+struct LogOF : public OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, CircBufL> {
+	explicit LogOF(const std::string& prefix) :OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, CircBufL>
+		(std::make_shared<SimplePostbox<TimedDatum<float, float>>>(),
 		std::make_unique<LogAction>(prefix)) {};
 };
 

@@ -11,7 +11,10 @@
 #include "TimedDatum.h"
 #include "FilterActionBase.h"
 
-template <typename S, typename T, template<typename, typename> typename L, typename LAlloc = std::allocator<TimedDatum<S, T>>>
+template <typename S, 
+		  typename T, 
+	      template<typename, typename> typename L,
+	      typename LAlloc = std::allocator<TimedDatum<S, T>>>
 class AccelByRegressionFilterAction : public FilterActionBase<TimedDatum<S, T>, TimedDatum<S, T>, L, LAlloc> {
 
 public:

@@ -19,7 +19,7 @@ public:
 	explicit QuickCompressFilterAction(T calibration) : mCalib(calibration) {};
 
 	TimedDatum<S, T> actOn(const L<TimedDatum<S, T>, LAlloc>& data) override {
-		if (data.empty()) return Datalin<S, T>::zero();
+		if (data.empty()) return Datalin<S, TimedDatum<S, T>>::zero();
 
 		TimedDatum<S, T> ret;
 

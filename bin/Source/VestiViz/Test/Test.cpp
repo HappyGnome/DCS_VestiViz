@@ -2,10 +2,11 @@
 #include<random>
 
 #include "MultiplyFilter.h"
-#include "AverageFilter.h"
+#include "ConvOutF.h"
 #include "LoggerFilter.h"
-#include "ExpDecayFilter.h"
-#include "RegDiffFilter.h"
+#include "ExpDecaySIF.h"
+#include "RegDiffSIF.h"
+#include "QCompSIF.h"
 
 #include "DatumMatrix.h"
 
@@ -15,9 +16,9 @@ using namespace std::chrono_literals;
 void Test1() {
     MultiplyProcessor m1(2);
     LogSIF l1("Doubled ");
-    ExpSIF e1(1);
+    ExpDecaySIF<float,float> e1(1);
     LogSIF l2("Decay ");
-    AverageOutputProcessor a1;
+    ConvOutF<float, float> a1({ 0.5f,0.5f });
     LogOF l3("Output ");
     auto input = m1.getInput();
 
@@ -36,7 +37,7 @@ void Test1() {
 
     for (int i = 0; i < 100; i++) {
         input->addDatum(TDf{ (float)1,0.01f * (float)i });
-        std::this_thread::sleep_for(15ms);
+        //std::this_thread::sleep_for(15ms);
     }
     m1.stopProcessing();
     l1.stopProcessing();
@@ -50,7 +51,7 @@ void Test1() {
 
 
 void Test2() {
-    RegDiffSIF rd1(16);
+    RegDiffSIF<float,float> rd1(16);
     LogSIF l1("Accel: ");
   
     auto input = rd1.getInput();
@@ -66,7 +67,7 @@ void Test2() {
     std::uniform_real_distribution<float> rng(-0.005f,0.005f);
     for (int i = 0; i < 100; i++) {
         input->addDatum(TDf{ (float)i*i*0.0004f + rng(gen),0.01f * (float)i });
-        std::this_thread::sleep_for(15ms);
+       // std::this_thread::sleep_for(15ms);
     }
     rd1.stopProcessing();
     l1.stopProcessing();
@@ -84,12 +85,35 @@ void Test3() {
 
     std::cout << "End";
 }
+void Test4() {
+    QCompSIF<float,float> rd1(0.5f);
+    LogSIF l1("Compress: ");
+
+    auto input = rd1.getInput();
+
+    rd1.setOutput(l1.getInput());
+
+
+    rd1.startProcessing();
+    l1.startProcessing();
+
+    for (int i = 0; i < 100; i++) {
+        input->addDatum(TDf{ (float)i*0.01f ,0.01f * (float)i });
+        //std::this_thread::sleep_for(15ms);
+    }
+    rd1.stopProcessing();
+    l1.stopProcessing();
+
+    std::cout << "End";
+}
+
 
 int main()
 {
     Test1();
     Test2();
     Test3();
+    Test4();
 
     DatumMatrix<float, 3, 2> mat = DatumMatrix<float, 3, 2>(1.0f, 0.0f, 1.0f, 2.0f, 1.0f, 0.0f);
     std::cout << mat <<std::endl;
