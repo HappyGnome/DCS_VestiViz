@@ -174,8 +174,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Test\ExpDecaySIF.h" />
-    <ClInclude Include="..\Test\LinCombDIF.h" />
+    <ClInclude Include="DynMatMultDIF.h" />
+    <ClInclude Include="ExpDecaySIF.h" />
+    <ClInclude Include="LinCombDIF.h" />
     <ClInclude Include="AsyncFilter.h" />
     <ClInclude Include="ConvOutF.h" />
     <ClInclude Include="CircPostbox.h" />
@@ -193,6 +194,7 @@
     <ClInclude Include="QuickCompressFilterAction.h" />
     <ClInclude Include="RegDiffSIF.h" />
     <ClInclude Include="StatMatMultFilterAction.h" />
+    <ClInclude Include="StatMatMultSIF.h" />
     <ClInclude Include="TimedDatum.h" />
     <ClInclude Include="SimplePostbox.h" />
     <ClInclude Include="SingleInputFilterBase.h" />

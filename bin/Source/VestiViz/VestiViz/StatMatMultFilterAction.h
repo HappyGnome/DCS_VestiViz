@@ -21,17 +21,17 @@ template <
 class StatMatMultFilterAction : public FilterActionBase<TimedDatum<S, Tin>, TimedDatum<S, Tout>, L, LAlloc> {
 	Tmat mMat;
 public:
-	explicit StatMatMultFilterAction(Tmat mat) : mMat(mat) {};
+	explicit StatMatMultFilterAction(Tmat&& mat) : mMat(std::move(mat)) {};
 
 	TimedDatum<S, Tout> actOn(
-		const L1<TimedDatum<S, Tin>,
-		LAlloc1>& vec) override {
+		const L<TimedDatum<S, Tin>,
+		LAlloc>& vec) override {
 
 		TimedDatum<S, Tout> ret;
 
 		if (!vec.empty()) {
-			ret.datum = mMat.applyTo(*vec.crend());
-			ret.t = vec.crend()->t;
+			ret.datum = mMat.applyTo(vec.crbegin() -> datum);
+			ret.t = vec.crbegin()->t;
 		}
 		return ret;
 	};

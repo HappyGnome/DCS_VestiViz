@@ -10,27 +10,30 @@
 //#include "CircPostbox.h"
 #include "SimplePostbox.h"
 
-class LogAction :public FilterActionBase<TimedDatum<float, float>, TimedDatum<float, float>, CircBufL> {
+template <typename S, typename T>
+class LogAction :public FilterActionBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL> {
 	std::string mPrefix;
 public:
 	LogAction(const std::string& prefix) :mPrefix(prefix) {};
 
-	TimedDatum<float, float>  actOn(const CircBufL<TimedDatum<float, float>>& data) override {
+	TimedDatum<S, T>  actOn(const CircBufL<TimedDatum<S, T>>& data) override {
 		std::cout << mPrefix << data.crbegin()->datum << " t: "<< data.crbegin()->t <<std::endl;
 		return *data.crbegin();
 	}
 };
 
-
-struct LogSIF : public SingleInputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, CircBufL> {
-	explicit LogSIF(const std::string& prefix) :SingleInputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, CircBufL>
-		(std::make_shared<SimplePostbox<TimedDatum<float, float>>>(),
-		 std::make_unique<LogAction>(prefix)) {};
+template <typename S, typename T>
+struct LogSIF : public SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL> {
+	explicit LogSIF(const std::string& prefix) :SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL>
+		(std::make_shared<SimplePostbox<TimedDatum<S, T>>>(),
+		 std::make_unique<LogAction<S,T>>(prefix)) {};
 };
-struct LogOF : public OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, CircBufL> {
-	explicit LogOF(const std::string& prefix) :OutputFilterBase<TimedDatum<float, float>, TimedDatum<float, float>, CircBufL>
-		(std::make_shared<SimplePostbox<TimedDatum<float, float>>>(),
-		std::make_unique<LogAction>(prefix)) {};
+
+template <typename S, typename T>
+struct LogOF : public OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL> {
+	explicit LogOF(const std::string& prefix) :OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL>
+		(std::make_shared<SimplePostbox<TimedDatum<S, T>>>(),
+		std::make_unique<LogAction<S, T>>(prefix)) {};
 };
 
 #endif

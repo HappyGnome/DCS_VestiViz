@@ -53,8 +53,8 @@ public:
 		TimedDatum<S, T> ret;
 
 		if (!vec1.empty() && !vec2.empty()) {
-			ret.datum = Datalin<S, T>::lin(vec1.crend()->datum,mScaleX, vec2.crend()->datum, mScaleY);
-			ret.t = mScaleTX * vec1.crend()->t + mScaleTY * vec2.crend()->t;
+			ret.datum = Datalin<S, T>::lin(vec1.crbegin()->datum,mScaleX, vec2.crbegin()->datum, mScaleY);
+			ret.t = mScaleTX * vec1.crbegin()->t + mScaleTY * vec2.crbegin()->t;
 		}		
 		
 		return ret; 

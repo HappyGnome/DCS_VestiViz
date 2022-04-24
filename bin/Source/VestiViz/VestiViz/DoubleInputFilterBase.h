@@ -48,8 +48,8 @@ protected:
 
 public:
 	explicit DoubleInputFilterBase(
-		const std::shared_ptr<PostboxBase<Tin1, L1<Tin1, LAlloc1>>>& input1, 
-		const std::shared_ptr<PostboxBase<Tin2, L1<Tin2, LAlloc2>>>& input2,
+		const std::shared_ptr<PostboxBase<Tin1, L1, LAlloc1>>& input1, 
+		const std::shared_ptr<PostboxBase<Tin2, L1, LAlloc2>>& input2,
 		std::unique_ptr <DoubleFilterActionBase<Tin1, Tin2, Tout, L1, L2, LAlloc1, LAlloc2>>&& action)
 		:	mInput1(input1), 
 			mInput2(input2), 

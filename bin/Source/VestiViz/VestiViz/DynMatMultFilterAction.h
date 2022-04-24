@@ -38,8 +38,8 @@ public:
 		TimedDatum<S, Tout> ret;
 
 		if (!vec.empty() && !matrix.empty()) {
-			ret.datum = matrix.crend()->applyTo(*vec.crend());
-			ret.t = (S)0.5 * (matrix.crend()->t + vec.crend()->t);
+			ret.datum = matrix.crbegin()->datum.applyTo(vec.crbegin() -> datum);
+			ret.t = (S)0.5 * (matrix.crbegin()->t + vec.crbegin()->t);
 		}
 		return ret;
 	};

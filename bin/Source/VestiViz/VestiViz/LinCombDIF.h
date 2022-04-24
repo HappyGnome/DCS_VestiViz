@@ -32,6 +32,7 @@ struct LinCombDIF : public DoubleInputFilterBase<
 				LAlloc, 
 				LAlloc>
 		(std::make_shared<SimplePostbox<TimedDatum<S, T>>>(),
+		 std::make_shared<SimplePostbox<TimedDatum<S, T>>>(),
 		 std::make_unique<LinCombFilterAction<S, T, CircBufL, LAlloc>>(scaleX,scaleY)) {};
 };
 

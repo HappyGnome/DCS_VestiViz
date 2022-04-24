@@ -31,7 +31,7 @@ public:
 	}
 
 	template<typename V>
-	DatumArr<S, V, M> applyTo(const DatumArr<S, V, N>& vec) {
+	DatumArr<S, V, M> applyTo(const DatumArr<S, V, N>& vec) const{
 		DatumArr<S, V, M> ret = DatumArr<S, V, M>::zero();
 
 		for (std::size_t i = 0; i < M; i++) {

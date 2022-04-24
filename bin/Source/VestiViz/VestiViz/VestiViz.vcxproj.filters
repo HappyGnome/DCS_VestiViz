@@ -105,10 +105,10 @@
     <ClInclude Include="LinCombFilterAction.h">
       <Filter>Header Files\FilterActions</Filter>
     </ClInclude>
-    <ClInclude Include="..\Test\LinCombDIF.h">
+    <ClInclude Include="LinCombDIF.h">
       <Filter>Header Files\Filters\Implementations</Filter>
     </ClInclude>
-    <ClInclude Include="..\Test\ExpDecaySIF.h">
+    <ClInclude Include="ExpDecaySIF.h">
       <Filter>Header Files\Filters\Implementations</Filter>
     </ClInclude>
     <ClInclude Include="QCompSIF.h">
@@ -118,6 +118,12 @@
       <Filter>Header Files\Filters\Implementations</Filter>
     </ClInclude>
     <ClInclude Include="RegDiffSIF.h">
+      <Filter>Header Files\Filters\Implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="DynMatMultDIF.h">
+      <Filter>Header Files\Filters\Implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="StatMatMultSIF.h">
       <Filter>Header Files\Filters\Implementations</Filter>
     </ClInclude>
   </ItemGroup>
