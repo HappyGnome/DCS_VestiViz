@@ -9,8 +9,8 @@
 #include <condition_variable>
 
 #include "PostboxInputBase.h"
+#include "PostboxWrapper.h"
 
-template <typename Tout>
 class AsyncFilter {
 
 	std::thread mWorkerThread;
@@ -31,7 +31,7 @@ public:
 
 	void startProcessing(){
 		if (!mWorkerThread.joinable())
-		mWorkerThread = std::thread(&AsyncFilter::workerFunc, this);
+			mWorkerThread = std::thread(&AsyncFilter::workerFunc, this);
 	}
 
 	void stopProcessing(){
@@ -41,6 +41,7 @@ public:
 		}
 	}
 
-	virtual void setOutput (std::shared_ptr<PostboxInputBase<Tout>> output) = 0;
+	virtual bool setOutput (PIB_Wrapper::Wrapped&& wrappedInput) = 0;
+	virtual PIB_Wrapper::Wrapped getInput(int index) = 0;
 };
 #endif

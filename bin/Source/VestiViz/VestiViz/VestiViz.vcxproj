@@ -190,9 +190,12 @@
     <ClInclude Include="DoubleInputFilterBase.h" />
     <ClInclude Include="DynMatMultFilterAction.h" />
     <ClInclude Include="LinCombFilterAction.h" />
+    <ClInclude Include="PostboxWrapper.h" />
+    <ClInclude Include="TemplateInterchangeWrapper.h" />
     <ClInclude Include="QCompSIF.h" />
     <ClInclude Include="QuickCompressFilterAction.h" />
     <ClInclude Include="RegDiffSIF.h" />
+    <ClInclude Include="SimpleDiffFilterAction.h" />
     <ClInclude Include="StatMatMultFilterAction.h" />
     <ClInclude Include="StatMatMultSIF.h" />
     <ClInclude Include="TimedDatum.h" />
@@ -205,6 +208,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="PostboxInputBase.h" />
     <ClInclude Include="PostboxBase.h" />
+    <ClInclude Include="VestivizPipeline.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />

@@ -31,6 +31,12 @@
     <Filter Include="Header Files\Filters\Implementations">
       <UniqueIdentifier>{d92bc93c-0850-4603-9f5c-e3c935f27293}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Pipelines">
+      <UniqueIdentifier>{32d7e116-b8f9-4133-975b-7a475915ff03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Postboxes\Wrappers">
+      <UniqueIdentifier>{5cc324b0-6cfd-4d71-bf35-c198d934c8dc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -125,6 +131,18 @@
     </ClInclude>
     <ClInclude Include="StatMatMultSIF.h">
       <Filter>Header Files\Filters\Implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="VestivizPipeline.h">
+      <Filter>Header Files\Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleDiffFilterAction.h">
+      <Filter>Header Files\FilterActions</Filter>
+    </ClInclude>
+    <ClInclude Include="TemplateInterchangeWrapper.h">
+      <Filter>Header Files\Postboxes\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="PostboxWrapper.h">
+      <Filter>Header Files\Postboxes\Wrappers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

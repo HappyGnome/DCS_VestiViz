@@ -10,7 +10,7 @@
 #include "FilterActionBase.h"
 
 template <typename Tin, typename Tout, template<typename, typename> typename L, typename LAlloc = std::allocator<Tin>>
-class OutputFilterBase : public AsyncFilter<Tout> {
+class OutputFilterBase : public AsyncFilter {
 private:
 	std::shared_ptr<PostboxInputBase<Tout>> mOutput;
 	std::shared_ptr<PostboxInputBase<Tout>> mOutputAwaited;//used only in processing thread, set only while holding mOutputMutex
@@ -53,14 +53,20 @@ protected:
 public:
 	explicit OutputFilterBase(const std::shared_ptr<PostboxBase<Tin, L, LAlloc>>& input, std::unique_ptr <FilterActionBase<Tin, Tout, L, LAlloc>>&& action): mInput(input), mFilterAction(std::move(action)) {};
 
-	void setOutput(std::shared_ptr<PostboxInputBase<Tout>> output) final {
-		std::lock_guard<std::mutex> lock(mOutputMutex);
-		if (mOutput != nullptr) mOutput->cancel();
-		mOutput = output;
+	bool setOutput(PIB_Wrapper::Wrapped&& wrappedInput) final {
+		auto unwrapped = PIB_Wrapper::Unwrap<Tout>(std::move(wrappedInput));
+		if (unwrapped != nullptr) {
+			std::lock_guard<std::mutex> lock(mOutputMutex);
+			if (mOutput != nullptr) mOutput->cancel();
+			mOutput = unwrapped;
+			return true;
+		}
+		return false;
 	}
 
-	std::shared_ptr<PostboxBase<Tin, L, LAlloc>> getInput() const {
-		return mInput;
+	PIB_Wrapper::Wrapped getInput(int index) final {
+		if (index != 0)return nullptr;
+		return PIB_Wrapper::Wrap<Tin>(mInput);
 	}
 
 };

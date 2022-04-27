@@ -23,13 +23,13 @@ void Test1() {
     LogSIF<float, float> l2("Decay ");
     ConvOutF<float, float> a1({ 0.5f,0.5f });
     LogOF<float, float> l3("Output ");
-    auto input = m1.getInput();
+    auto input = PIB_Wrapper::Unwrap<TDf>(m1.getInput(0));
 
-    m1.setOutput(l1.getInput());
-    l1.setOutput(e1.getInput());
-    e1.setOutput(l2.getInput());
-    l2.setOutput(a1.getInput());
-    a1.setOutput(l3.getInput());
+    m1.setOutput(l1.getInput(0));
+    l1.setOutput(e1.getInput(0));
+    e1.setOutput(l2.getInput(0));
+    l2.setOutput(a1.getInput(0));
+    a1.setOutput(l3.getInput(0));
 
     m1.startProcessing();
     l1.startProcessing();
@@ -57,9 +57,9 @@ void Test2() {
     RegDiffSIF<float,float> rd1(16);
     LogSIF<float, float> l1("Accel: ");
   
-    auto input = rd1.getInput();
+    auto input = PIB_Wrapper::Unwrap<TDf>(rd1.getInput(0));
 
-    rd1.setOutput(l1.getInput());
+    rd1.setOutput(l1.getInput(0));
    
 
     rd1.startProcessing();
@@ -92,9 +92,9 @@ void Test4() {
     QCompSIF<float,float> rd1(0.5f);
     LogSIF<float, float> l1("Compress: ");
 
-    auto input = rd1.getInput();
+    auto input = PIB_Wrapper::Unwrap<TDf>(rd1.getInput(0));
 
-    rd1.setOutput(l1.getInput());
+    rd1.setOutput(l1.getInput(0));
 
 
     rd1.startProcessing();
@@ -119,15 +119,15 @@ void Test5() {
     LinCombDIF<float, DatumArr<float, float, 1>> c1(2.0f,1.0f);
     LogSIF<float, DatumArr<float, float, 1>> l3("Comb ");
 
-    auto input = s1.getInput();
-    auto matInput = d1.getInput2();
-    auto inputConst = c1.getInput2();
+    auto input = PIB_Wrapper::Unwrap<TimedDatum<float, DatumArr<float, float, 3>>>(s1.getInput(0));
+    auto matInput = PIB_Wrapper::Unwrap<TimedDatum<float, DatumMatrix<float, 1, 2>>>(d1.getInput(1));
+    auto inputConst = PIB_Wrapper::Unwrap<TimedDatum<float, DatumArr<float, float, 1>>>(c1.getInput(1));
 
-    s1.setOutput(l1.getInput());
-    l1.setOutput(d1.getInput1());
-    d1.setOutput(l2.getInput());
-    l2.setOutput(c1.getInput1());
-    c1.setOutput(l3.getInput());
+    s1.setOutput(l1.getInput(0));
+    l1.setOutput(d1.getInput(0));
+    d1.setOutput(l2.getInput(0));
+    l2.setOutput(c1.getInput(0));
+    c1.setOutput(l3.getInput(0));
 
     s1.startProcessing();
     l1.startProcessing();

@@ -16,7 +16,7 @@ template <typename Tin1,
 	template<typename, typename> typename L2, 
 	typename LAlloc1 = std::allocator<Tin1>, 
 	typename LAlloc2 = std::allocator<Tin2> >
-class DoubleInputFilterBase : public AsyncFilter<Tout> {
+class DoubleInputFilterBase : public AsyncFilter {
 private:
 	std::shared_ptr<PostboxInputBase<Tout>> mOutput;
 	std::mutex mOutputMutex;
@@ -55,16 +55,21 @@ public:
 			mInput2(input2), 
 			mFilterAction(std::move(action)) {};
 
-	void setOutput(std::shared_ptr<PostboxInputBase<Tout>> output) final {
-		std::lock_guard<std::mutex> lock(mOutputMutex);
-		mOutput = output;
+	bool setOutput(PIB_Wrapper::Wrapped&& wrappedInput) final {
+		auto unwrapped = PIB_Wrapper::Unwrap<Tout>(std::move(wrappedInput));
+		if (unwrapped != nullptr) {
+			std::lock_guard<std::mutex> lock(mOutputMutex);
+			if (mOutput != nullptr) mOutput->cancel();
+			mOutput = unwrapped;
+			return true;
+		}
+		return false;
 	}
 
-	std::shared_ptr<PostboxBase<Tin1, L1, LAlloc1>> getInput1() const {
-		return mInput1;
-	}
-	std::shared_ptr<PostboxBase<Tin2, L2, LAlloc2>> getInput2() const {
-		return mInput2;
+	PIB_Wrapper::Wrapped getInput(int index) final {
+		if (index == 0) return PIB_Wrapper::Wrap<Tin1>(mInput1);
+		else if (index == 1) return PIB_Wrapper::Wrap<Tin2>(mInput2);
+		else return nullptr;
 	}
 
 };
