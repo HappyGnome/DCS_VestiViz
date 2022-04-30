@@ -4,8 +4,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.31129.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VestiViz", "VestiViz\VestiViz.vcxproj", "{1521E6B5-481F-4E06-ACB1-0020C4320430}"
+	ProjectSection(ProjectDependencies) = postProject
+		{254A7668-EFD8-4A32-89A5-14950BBE88C5} = {254A7668-EFD8-4A32-89A5-14950BBE88C5}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "Test\Test.vcxproj", "{688C5B8E-AC26-435A-91EC-20FBDB7FB934}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FilterTL", "FilterTL\FilterTL.vcxproj", "{254A7668-EFD8-4A32-89A5-14950BBE88C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +36,14 @@ Global
 		{688C5B8E-AC26-435A-91EC-20FBDB7FB934}.Release|x64.Build.0 = Release|x64
 		{688C5B8E-AC26-435A-91EC-20FBDB7FB934}.Release|x86.ActiveCfg = Release|Win32
 		{688C5B8E-AC26-435A-91EC-20FBDB7FB934}.Release|x86.Build.0 = Release|Win32
+		{254A7668-EFD8-4A32-89A5-14950BBE88C5}.Debug|x64.ActiveCfg = Debug|x64
+		{254A7668-EFD8-4A32-89A5-14950BBE88C5}.Debug|x64.Build.0 = Debug|x64
+		{254A7668-EFD8-4A32-89A5-14950BBE88C5}.Debug|x86.ActiveCfg = Debug|Win32
+		{254A7668-EFD8-4A32-89A5-14950BBE88C5}.Debug|x86.Build.0 = Debug|Win32
+		{254A7668-EFD8-4A32-89A5-14950BBE88C5}.Release|x64.ActiveCfg = Release|x64
+		{254A7668-EFD8-4A32-89A5-14950BBE88C5}.Release|x64.Build.0 = Release|x64
+		{254A7668-EFD8-4A32-89A5-14950BBE88C5}.Release|x86.ActiveCfg = Release|Win32
+		{254A7668-EFD8-4A32-89A5-14950BBE88C5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

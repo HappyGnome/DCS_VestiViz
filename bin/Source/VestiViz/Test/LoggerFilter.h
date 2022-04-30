@@ -9,6 +9,7 @@
 #include "OutputFilterBase.h"
 //#include "CircPostbox.h"
 #include "SimplePostbox.h"
+#include "TestIOWrapper.h"
 
 template <typename S, typename T>
 class LogAction :public FilterActionBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL> {
@@ -23,15 +24,15 @@ public:
 };
 
 template <typename S, typename T>
-struct LogSIF : public SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL> {
-	explicit LogSIF(const std::string& prefix) :SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL>
+struct LogSIF : public SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, Test_IOWrapper, CircBufL> {
+	explicit LogSIF(const std::string& prefix) :SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, Test_IOWrapper, CircBufL>
 		(std::make_shared<SimplePostbox<TimedDatum<S, T>>>(),
 		 std::make_unique<LogAction<S,T>>(prefix)) {};
 };
 
 template <typename S, typename T>
-struct LogOF : public OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL> {
-	explicit LogOF(const std::string& prefix) :OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL>
+struct LogOF : public OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, Test_IOWrapper, CircBufL> {
+	explicit LogOF(const std::string& prefix) :OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, Test_IOWrapper, CircBufL>
 		(std::make_shared<SimplePostbox<TimedDatum<S, T>>>(),
 		std::make_unique<LogAction<S, T>>(prefix)) {};
 };

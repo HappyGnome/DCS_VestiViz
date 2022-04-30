@@ -10,6 +10,7 @@
 //#include "CircPostbox.h"
 #include "SimplePostbox.h"
 #include"TimedDatum.h"
+#include "TestIOWrapper.h"
 
 using TDf = TimedDatum<float, float> ;
 
@@ -27,8 +28,8 @@ public:
 	}
 };
 
-struct MultiplyProcessor : public SingleInputFilterBase<TDf, TDf,PIB_Wrapper, CircBufL> {
-	explicit MultiplyProcessor(float scale) :SingleInputFilterBase<TDf, TDf, PIB_Wrapper, CircBufL>
+struct MultiplyProcessor : public SingleInputFilterBase<TDf, TDf, Test_IOWrapper, CircBufL> {
+	explicit MultiplyProcessor(float scale) :SingleInputFilterBase<TDf, TDf, Test_IOWrapper, CircBufL>
 		(std::make_shared<SimplePostbox<TDf>>(),
 		 std::make_unique<MultiplyAction>(scale)) {};
 	virtual ~MultiplyProcessor() {};

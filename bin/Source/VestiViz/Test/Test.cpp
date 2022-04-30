@@ -19,11 +19,11 @@ using namespace std::chrono_literals;
 void Test1() {
     MultiplyProcessor m1(2);
     LogSIF<float, float> l1("Doubled ");
-    ExpDecaySIF<float,float> e1(1);
+    ExpDecaySIF<float,float, Test_IOWrapper> e1(1);
     LogSIF<float, float> l2("Decay ");
-    ConvOutF<float, float> a1({ 0.5f,0.5f });
+    ConvOutF<float, float, Test_IOWrapper> a1({ 0.5f,0.5f });
     LogOF<float, float> l3("Output ");
-    auto input = PIB_Wrapper::Unwrap<TDf>(m1.getInput(0));
+    auto input = Test_IOWrapper::Unwrap<TDf>(m1.getInput(0));
 
     m1.setOutput(l1.getInput(0));
     l1.setOutput(e1.getInput(0));
@@ -54,10 +54,10 @@ void Test1() {
 
 
 void Test2() {
-    RegDiffSIF<float,float> rd1(16);
+    RegDiffSIF<float,float, Test_IOWrapper> rd1(16);
     LogSIF<float, float> l1("Accel: ");
   
-    auto input = PIB_Wrapper::Unwrap<TDf>(rd1.getInput(0));
+    auto input = Test_IOWrapper::Unwrap<TDf>(rd1.getInput(0));
 
     rd1.setOutput(l1.getInput(0));
    
@@ -89,10 +89,10 @@ void Test3() {
     std::cout << "End";
 }
 void Test4() {
-    QCompSIF<float,float> rd1(0.5f);
+    QCompSIF<float,float, Test_IOWrapper> rd1(0.5f);
     LogSIF<float, float> l1("Compress: ");
 
-    auto input = PIB_Wrapper::Unwrap<TDf>(rd1.getInput(0));
+    auto input = Test_IOWrapper::Unwrap<TDf>(rd1.getInput(0));
 
     rd1.setOutput(l1.getInput(0));
 
@@ -111,17 +111,17 @@ void Test4() {
 }
 
 void Test5() {
-    StatMatMultSIF<float,float,2,3> s1(DatumMatrix<float,2,3>(1.0f,2.0f,3.0f,
+    StatMatMultSIF<float,float, Test_IOWrapper,2,3> s1(DatumMatrix<float,2,3>(1.0f,2.0f,3.0f,
                                                               4.0f, 5.0f, 6.0f));
     LogSIF<float,DatumArr<float,float,2>> l1("Stat ");
-    DynMatMultDIF<float, float, 1, 2> d1;
+    DynMatMultDIF<float, float, Test_IOWrapper, 1, 2> d1;
     LogSIF<float, DatumArr<float, float, 1>> l2("Dyn ");
-    LinCombDIF<float, DatumArr<float, float, 1>> c1(2.0f,1.0f);
+    LinCombDIF<float, DatumArr<float, float, 1>, Test_IOWrapper> c1(2.0f,1.0f);
     LogSIF<float, DatumArr<float, float, 1>> l3("Comb ");
 
-    auto input = PIB_Wrapper::Unwrap<TimedDatum<float, DatumArr<float, float, 3>>>(s1.getInput(0));
-    auto matInput = PIB_Wrapper::Unwrap<TimedDatum<float, DatumMatrix<float, 1, 2>>>(d1.getInput(1));
-    auto inputConst = PIB_Wrapper::Unwrap<TimedDatum<float, DatumArr<float, float, 1>>>(c1.getInput(1));
+    auto input = Test_IOWrapper::Unwrap<TimedDatum<float, DatumArr<float, float, 3>>>(s1.getInput(0));
+    auto matInput = Test_IOWrapper::Unwrap<TimedDatum<float, DatumMatrix<float, 1, 2>>>(d1.getInput(1));
+    auto inputConst = Test_IOWrapper::Unwrap<TimedDatum<float, DatumArr<float, float, 1>>>(c1.getInput(1));
 
     s1.setOutput(l1.getInput(0));
     l1.setOutput(d1.getInput(0));

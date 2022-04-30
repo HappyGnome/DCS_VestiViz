@@ -23,16 +23,10 @@
     <ClInclude Include="MultiplyFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AverageFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LoggerFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RegDiffFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="QuickCompressFilter.h">
+    <ClInclude Include="TestIOWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
