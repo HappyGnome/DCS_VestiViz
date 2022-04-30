@@ -22,12 +22,14 @@ template <
 struct StatMatMultSIF : public SingleInputFilterBase<
 		TimedDatum<S, DatumArr<S, T, N>>,
 		TimedDatum<S, DatumArr<S, T, M>>,
+	    PIB_Wrapper,
 		CircBufL,
 		LAlloc> {
 	explicit StatMatMultSIF(DatumMatrix<S, M, N>&& mat)
 		: SingleInputFilterBase<
 			TimedDatum<S, DatumArr<S, T, N>>,
 			TimedDatum<S, DatumArr<S, T, M>>,
+			PIB_Wrapper,
 			CircBufL,
 			LAlloc>
 		(std::make_shared<SimplePostbox<TimedDatum<S, DatumArr<S, T, N>>>>(),

@@ -10,8 +10,8 @@
 #include "FilterActionBase.h"
 #include "PostboxWrapper.h"
 
-template <typename Tin, typename Tout,template<typename, typename> typename L, typename LAlloc = std::allocator<Tin>>
-class SingleInputFilterBase : public AsyncFilter{
+template <typename Tin, typename Tout,typename IOWrapper,template<typename, typename> typename L, typename LAlloc = std::allocator<Tin>>
+class SingleInputFilterBase : public AsyncFilter<IOWrapper>{
 private:
 	std::shared_ptr<PostboxInputBase<Tout>> mOutput;
 	std::mutex mOutputMutex;
@@ -41,8 +41,8 @@ protected:
 public:
 	explicit SingleInputFilterBase(const std::shared_ptr<PostboxBase<Tin, L, LAlloc>>& input, std::unique_ptr <FilterActionBase<Tin,Tout, L, LAlloc>>&& action):mInput(input), mFilterAction(std::move(action)) {};
 
-	bool setOutput(PIB_Wrapper::Wrapped&& wrappedInput) final{
-		auto unwrapped = PIB_Wrapper::Unwrap<Tout>(std::move(wrappedInput));
+	bool setOutput(typename IOWrapper::Wrapped&& wrappedInput) final{
+		auto unwrapped = IOWrapper::template Unwrap<Tout>(std::move(wrappedInput));
 		if (unwrapped != nullptr) {
 			std::lock_guard<std::mutex> lock(mOutputMutex);
 			if (mOutput != nullptr) mOutput->cancel();
@@ -52,9 +52,9 @@ public:
 		return false;
 	}
 	
-	PIB_Wrapper::Wrapped getInput(int index) final {
+	typename IOWrapper::Wrapped getInput(int index) final {
 		if (index != 0)return nullptr;
-		return PIB_Wrapper::Wrap<Tin>(mInput);
+		return IOWrapper::template Wrap<Tin>(mInput);
 	}
 };
 

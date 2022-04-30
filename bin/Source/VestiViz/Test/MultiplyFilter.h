@@ -27,8 +27,8 @@ public:
 	}
 };
 
-struct MultiplyProcessor : public SingleInputFilterBase<TDf, TDf, CircBufL> {
-	explicit MultiplyProcessor(float scale) :SingleInputFilterBase<TDf, TDf, CircBufL>
+struct MultiplyProcessor : public SingleInputFilterBase<TDf, TDf,PIB_Wrapper, CircBufL> {
+	explicit MultiplyProcessor(float scale) :SingleInputFilterBase<TDf, TDf, PIB_Wrapper, CircBufL>
 		(std::make_shared<SimplePostbox<TDf>>(),
 		 std::make_unique<MultiplyAction>(scale)) {};
 	virtual ~MultiplyProcessor() {};

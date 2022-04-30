@@ -23,15 +23,15 @@ public:
 };
 
 template <typename S, typename T>
-struct LogSIF : public SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL> {
-	explicit LogSIF(const std::string& prefix) :SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL>
+struct LogSIF : public SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL> {
+	explicit LogSIF(const std::string& prefix) :SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL>
 		(std::make_shared<SimplePostbox<TimedDatum<S, T>>>(),
 		 std::make_unique<LogAction<S,T>>(prefix)) {};
 };
 
 template <typename S, typename T>
-struct LogOF : public OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL> {
-	explicit LogOF(const std::string& prefix) :OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL>
+struct LogOF : public OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL> {
+	explicit LogOF(const std::string& prefix) :OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL>
 		(std::make_shared<SimplePostbox<TimedDatum<S, T>>>(),
 		std::make_unique<LogAction<S, T>>(prefix)) {};
 };

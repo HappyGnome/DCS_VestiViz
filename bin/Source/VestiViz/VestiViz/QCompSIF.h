@@ -14,8 +14,8 @@
 
 template <typename S, typename T,
 	typename LAlloc = std::allocator<TimedDatum<S, T>>>
-struct QCompSIF : public SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, LAlloc> {
-	explicit QCompSIF(T scale) :SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, LAlloc>
+struct QCompSIF : public SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL, LAlloc> {
+	explicit QCompSIF(T scale) :SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL, LAlloc>
 		(std::make_shared<SimplePostbox<TimedDatum<S, T>>>(),
 			std::make_unique<QuickCompressFilterAction<S, T, CircBufL, LAlloc>>(scale)) {};
 };

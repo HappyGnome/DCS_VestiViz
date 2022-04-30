@@ -11,6 +11,7 @@
 #include "PostboxInputBase.h"
 #include "PostboxWrapper.h"
 
+template<typename IOWrapper>
 class AsyncFilter {
 
 	std::thread mWorkerThread;
@@ -41,7 +42,7 @@ public:
 		}
 	}
 
-	virtual bool setOutput (PIB_Wrapper::Wrapped&& wrappedInput) = 0;
-	virtual PIB_Wrapper::Wrapped getInput(int index) = 0;
+	virtual bool setOutput (typename IOWrapper::Wrapped&& wrappedInput) = 0;
+	virtual typename IOWrapper::Wrapped getInput(int index) = 0;
 };
 #endif

@@ -14,8 +14,8 @@
 
 template <typename S, typename T,
 	typename LAlloc = std::allocator<TimedDatum<S, T>>>
-struct ExpDecaySIF : public SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL,LAlloc> {
-	explicit ExpDecaySIF(S halflife) :SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, LAlloc>
+struct ExpDecaySIF : public SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL,LAlloc> {
+	explicit ExpDecaySIF(S halflife) :SingleInputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL, LAlloc>
 		(std::make_shared<SimplePostbox<TimedDatum<S, T>>>(),
 		std::make_unique<ExpDecayFilterAction<S, T, CircBufL, LAlloc>>(halflife)) {};
 	virtual ~ExpDecaySIF() = default;

@@ -13,8 +13,8 @@
 
 template <typename S, typename T,
 	typename LAlloc = std::allocator<TimedDatum<S, T>>>
-struct ConvOutF : public OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, LAlloc> {
-	explicit ConvOutF(std::vector<S>&& kernel) : OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, LAlloc>
+struct ConvOutF : public OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL, LAlloc> {
+	explicit ConvOutF(std::vector<S>&& kernel) : OutputFilterBase<TimedDatum<S, T>, TimedDatum<S, T>, PIB_Wrapper, CircBufL, LAlloc>
 		(std::make_shared<CircPostbox<TimedDatum<S, T>, LAlloc>>(kernel.size()),
 			std::make_unique<ConvolveFilterAction<S, T, CircBufL, LAlloc>>(std::move(kernel))) {};
 };
