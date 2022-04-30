@@ -137,7 +137,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\Lua515\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\Lua515\include;$(SolutionDir)\FilterTL\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>
@@ -159,7 +159,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\Lua515\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\Lua515\include;$(SolutionDir)\FilterTL\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>
@@ -174,40 +174,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="DynMatMultDIF.h" />
-    <ClInclude Include="ExpDecaySIF.h" />
-    <ClInclude Include="LinCombDIF.h" />
-    <ClInclude Include="AsyncFilter.h" />
-    <ClInclude Include="ConvOutF.h" />
-    <ClInclude Include="CircPostbox.h" />
-    <ClInclude Include="ConvolveFilterAction.h" />
-    <ClInclude Include="Datacomp.h" />
-    <ClInclude Include="DatumMatrix.h" />
-    <ClInclude Include="ExpDecayFilterAction.h" />
-    <ClInclude Include="FilterActionBase.h" />
-    <ClInclude Include="Datalin.h" />
-    <ClInclude Include="AccelByRegressionFilterAction.h" />
-    <ClInclude Include="DoubleInputFilterBase.h" />
-    <ClInclude Include="DynMatMultFilterAction.h" />
-    <ClInclude Include="LinCombFilterAction.h" />
     <ClInclude Include="PostboxWrapper.h" />
-    <ClInclude Include="TemplateInterchangeWrapper.h" />
-    <ClInclude Include="QCompSIF.h" />
-    <ClInclude Include="QuickCompressFilterAction.h" />
-    <ClInclude Include="RegDiffSIF.h" />
-    <ClInclude Include="SimpleDiffFilterAction.h" />
-    <ClInclude Include="StatMatMultFilterAction.h" />
-    <ClInclude Include="StatMatMultSIF.h" />
-    <ClInclude Include="TimedDatum.h" />
-    <ClInclude Include="SimplePostbox.h" />
-    <ClInclude Include="SingleInputFilterBase.h" />
-    <ClInclude Include="CircBuf.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="DatumArr.h" />
-    <ClInclude Include="OutputFilterBase.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="PostboxInputBase.h" />
-    <ClInclude Include="PostboxBase.h" />
     <ClInclude Include="VestivizPipeline.h" />
   </ItemGroup>
   <ItemGroup>

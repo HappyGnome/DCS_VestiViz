@@ -13,23 +13,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\Buffers">
-      <UniqueIdentifier>{da0f5bbb-86bf-4be7-95d8-fa5dbac0a465}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Datums">
-      <UniqueIdentifier>{069dd9c8-e494-48ab-8ce3-c6f097f42388}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Filters">
-      <UniqueIdentifier>{3886cab1-d4d4-458f-8682-8fee4fade43f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\FilterActions">
-      <UniqueIdentifier>{b19cb7e8-9827-4e89-8da3-2835543e41fe}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Postboxes">
       <UniqueIdentifier>{70be1ac8-e3f6-47d2-801d-bb7129fbd122}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Filters\Implementations">
-      <UniqueIdentifier>{d92bc93c-0850-4603-9f5c-e3c935f27293}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Pipelines">
       <UniqueIdentifier>{32d7e116-b8f9-4133-975b-7a475915ff03}</UniqueIdentifier>
@@ -39,104 +24,30 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CircPostbox.h">
-      <Filter>Header Files\Postboxes</Filter>
-    </ClInclude>
-    <ClInclude Include="SimplePostbox.h">
-      <Filter>Header Files\Postboxes</Filter>
-    </ClInclude>
-    <ClInclude Include="PostboxBase.h">
-      <Filter>Header Files\Postboxes</Filter>
-    </ClInclude>
-    <ClInclude Include="PostboxInputBase.h">
-      <Filter>Header Files\Postboxes</Filter>
-    </ClInclude>
-    <ClInclude Include="CircBuf.h">
-      <Filter>Header Files\Buffers</Filter>
-    </ClInclude>
-    <ClInclude Include="TimedDatum.h">
-      <Filter>Header Files\Datums</Filter>
-    </ClInclude>
-    <ClInclude Include="DatumArr.h">
-      <Filter>Header Files\Datums</Filter>
-    </ClInclude>
-    <ClInclude Include="AsyncFilter.h">
-      <Filter>Header Files\Filters</Filter>
-    </ClInclude>
-    <ClInclude Include="OutputFilterBase.h">
-      <Filter>Header Files\Filters</Filter>
-    </ClInclude>
-    <ClInclude Include="SingleInputFilterBase.h">
-      <Filter>Header Files\Filters</Filter>
-    </ClInclude>
-    <ClInclude Include="ConvolveFilterAction.h">
-      <Filter>Header Files\FilterActions</Filter>
-    </ClInclude>
-    <ClInclude Include="FilterActionBase.h">
-      <Filter>Header Files\FilterActions</Filter>
-    </ClInclude>
-    <ClInclude Include="ExpDecayFilterAction.h">
-      <Filter>Header Files\FilterActions</Filter>
-    </ClInclude>
-    <ClInclude Include="Datalin.h">
-      <Filter>Header Files\Datums</Filter>
-    </ClInclude>
-    <ClInclude Include="AccelByRegressionFilterAction.h">
-      <Filter>Header Files\FilterActions</Filter>
-    </ClInclude>
-    <ClInclude Include="QuickCompressFilterAction.h">
-      <Filter>Header Files\FilterActions</Filter>
-    </ClInclude>
-    <ClInclude Include="Datacomp.h">
-      <Filter>Header Files\Datums</Filter>
-    </ClInclude>
-    <ClInclude Include="DoubleInputFilterBase.h">
-      <Filter>Header Files\Filters</Filter>
-    </ClInclude>
-    <ClInclude Include="DatumMatrix.h">
-      <Filter>Header Files\Datums</Filter>
-    </ClInclude>
-    <ClInclude Include="DynMatMultFilterAction.h">
-      <Filter>Header Files\FilterActions</Filter>
-    </ClInclude>
-    <ClInclude Include="StatMatMultFilterAction.h">
-      <Filter>Header Files\FilterActions</Filter>
-    </ClInclude>
-    <ClInclude Include="LinCombFilterAction.h">
-      <Filter>Header Files\FilterActions</Filter>
-    </ClInclude>
-    <ClInclude Include="LinCombDIF.h">
-      <Filter>Header Files\Filters\Implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="ExpDecaySIF.h">
-      <Filter>Header Files\Filters\Implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="QCompSIF.h">
-      <Filter>Header Files\Filters\Implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="ConvOutF.h">
-      <Filter>Header Files\Filters\Implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="RegDiffSIF.h">
-      <Filter>Header Files\Filters\Implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="DynMatMultDIF.h">
-      <Filter>Header Files\Filters\Implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="StatMatMultSIF.h">
-      <Filter>Header Files\Filters\Implementations</Filter>
-    </ClInclude>
     <ClInclude Include="VestivizPipeline.h">
       <Filter>Header Files\Pipelines</Filter>
-    </ClInclude>
-    <ClInclude Include="SimpleDiffFilterAction.h">
-      <Filter>Header Files\FilterActions</Filter>
-    </ClInclude>
-    <ClInclude Include="TemplateInterchangeWrapper.h">
-      <Filter>Header Files\Postboxes\Wrappers</Filter>
     </ClInclude>
     <ClInclude Include="PostboxWrapper.h">
       <Filter>Header Files\Postboxes\Wrappers</Filter>
     </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="exports.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
