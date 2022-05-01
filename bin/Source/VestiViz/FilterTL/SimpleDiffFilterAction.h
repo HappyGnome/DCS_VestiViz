@@ -18,10 +18,10 @@ public:
 	TimedDatum<S, T> actOn(const L<TimedDatum<S, T>, LAlloc>& data) override {
 		if (data.size() < 2) return Datalin<S, TimedDatum<S, T>>::zero();
 
-		auto it = data.crbegin();
-		TimedDatum<S, T> const* pt2 = *it;
-		it++;
-		TimedDatum<S, T> const* pt1 = *it;
+		auto pt2 = data.crbegin();
+		auto pt1 = data.crbegin();
+		pt1++;
+
 		S dt = pt2->t - pt1->t;
 		if (dt == 0) return Datalin<S, TimedDatum<S, T>>::zero();
 

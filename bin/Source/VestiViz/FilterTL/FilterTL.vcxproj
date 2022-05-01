@@ -177,6 +177,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="DynMatMultDIF.h" />
+    <ClInclude Include="DynMatMultPickDIF.h" />
+    <ClInclude Include="DynMatMultPickFilterAction.h" />
     <ClInclude Include="ExpDecaySIF.h" />
     <ClInclude Include="LinCombDIF.h" />
     <ClInclude Include="AsyncFilter.h" />
@@ -192,7 +194,7 @@
     <ClInclude Include="DoubleInputFilterBase.h" />
     <ClInclude Include="DynMatMultFilterAction.h" />
     <ClInclude Include="LinCombFilterAction.h" />
-    <ClInclude Include="PostboxWrapper.h" />
+    <ClInclude Include="SimpleDiffSIF.h" />
     <ClInclude Include="TemplateInterchangeWrapper.h" />
     <ClInclude Include="QCompSIF.h" />
     <ClInclude Include="QuickCompressFilterAction.h" />
@@ -208,7 +210,6 @@
     <ClInclude Include="OutputFilterBase.h" />
     <ClInclude Include="PostboxInputBase.h" />
     <ClInclude Include="PostboxBase.h" />
-    <ClInclude Include="VestivizPipeline.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,5 +1,6 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "pch.h"
+#include "VestivizPipeline.h"
 
 extern "C" {
     #include "lua.h"
@@ -9,6 +10,8 @@ extern "C" {
 
 static int l_foo(lua_State* L) {
     lua_pushstring(L, "Hi from C++");
+    VestivizPipeline<float> foo;
+    foo.init();
     return 1;
 }
 

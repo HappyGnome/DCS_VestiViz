@@ -8,7 +8,6 @@
 #include "AsyncFilter.h"
 #include "PostboxBase.h"
 #include "FilterActionBase.h"
-#include "PostboxWrapper.h"
 
 template <typename Tin, typename Tout,typename IOWrapper,template<typename, typename> typename L, typename LAlloc = std::allocator<Tin>>
 class SingleInputFilterBase : public AsyncFilter<IOWrapper>{

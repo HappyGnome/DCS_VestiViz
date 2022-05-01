@@ -9,7 +9,6 @@
 #include <condition_variable>
 
 #include "PostboxInputBase.h"
-#include "PostboxWrapper.h"
 
 template<typename IOWrapper>
 class AsyncFilter {
@@ -29,6 +28,8 @@ protected:
 	 */
 	virtual void cancel() = 0;
 public:
+
+	virtual ~AsyncFilter() = default;
 
 	void startProcessing(){
 		if (!mWorkerThread.joinable())

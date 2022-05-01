@@ -4,7 +4,8 @@
 #define _CONVOLVEFILTERACTION_H_
 
 #include <vector>
-#include<list>
+#include <list>
+#include <algorithm>
 
 #include "TimedDatum.h"
 #include "FilterActionBase.h"
@@ -34,7 +35,7 @@ public:
 	}
 
 	TimedDatum<S, T> actOn(const L<TimedDatum<S, T>,LAlloc>& data) override {
-		std::size_t window = std::min(mKernel.size(), data.size());
+		std::size_t window = std::min<std::size_t>(mKernel.size(), data.size());
 		auto itK = mKernel.cbegin();
 		auto itT = mTimeKernel.cbegin();
 		auto itD = data.crbegin();

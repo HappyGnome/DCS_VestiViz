@@ -21,7 +21,7 @@ public:
 	TimedDatum<S, T> actOn(const L<TimedDatum<S, T>, LAlloc>& data) override {
 
 		std::size_t n = data.size();
-		TimedDatum<S, T> ret = { 0,0 };
+		TimedDatum<S, T> ret = TimedDatum<S, T>::zero();
 		std::vector<S> taus(n, 0);
 		std::vector<S> tau2s(n, 0);
 

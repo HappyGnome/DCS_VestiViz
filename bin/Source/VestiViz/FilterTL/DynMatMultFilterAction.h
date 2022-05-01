@@ -18,8 +18,8 @@ template <
 	typename Tin2,
 	template<typename, typename> typename L1,
 	template<typename, typename> typename L2,
-	typename LAlloc1 = std::allocator<Tin1>,
-	typename LAlloc2 = std::allocator<Tin2> >
+	typename LAlloc1 = std::allocator<TimedDatum<S, Tin1>>,
+	typename LAlloc2 = std::allocator<TimedDatum<S, Tin2>> >
 class DynMatMultFilterAction : public DoubleFilterActionBase<
 			TimedDatum<S, Tin1>, 
 			TimedDatum<S, Tin2>,

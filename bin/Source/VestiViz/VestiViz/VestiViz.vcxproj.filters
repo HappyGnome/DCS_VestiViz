@@ -27,7 +27,7 @@
     <ClInclude Include="VestivizPipeline.h">
       <Filter>Header Files\Pipelines</Filter>
     </ClInclude>
-    <ClInclude Include="PostboxWrapper.h">
+    <ClInclude Include="PIB_Wrapper.h">
       <Filter>Header Files\Postboxes\Wrappers</Filter>
     </ClInclude>
     <ClInclude Include="framework.h">

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef _POSTBOXWRAPPER_H_
-#define _POSTBOXWRAPPER_H_
+#ifndef _PIB_WRAPPER_H_
+#define _PIB_WRAPPER_H_
 
 #include"TemplateInterchangeWrapper.h"
 #include "PostboxInputBase.h"
@@ -9,10 +9,9 @@
 
 using PIB_Wrapper = TemplateInterchangeWrapper<
 	PostboxInputBase, 
-	TimedDatum<float,float>,
-	TimedDatum<float,DatumArr<float, float, 2>>,
+	TimedDatum<float, DatumArr<float, float, 6>>,
 	TimedDatum<float, DatumArr<float, float, 3>>,
-	TimedDatum<float, DatumMatrix<float, 1, 2>>,
-	TimedDatum<float, DatumArr<float, float, 1>>>;
+	TimedDatum<float, DatumMatrix<float, 3, 3>>,
+	TimedDatum<float, DatumArr<float, float, 8>>>;
 
 #endif
