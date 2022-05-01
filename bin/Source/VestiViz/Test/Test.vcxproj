@@ -144,7 +144,6 @@
     <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LoggerFilter.h" />
     <ClInclude Include="MultiplyFilter.h" />
     <ClInclude Include="TestIOWrapper.h" />
   </ItemGroup>

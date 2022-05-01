@@ -18,6 +18,9 @@ struct TimedDatum {
 		return ret;
 	}
 
+	TimedDatum() = default;
+	TimedDatum(S time, T&& d) :datum(std::move(d)), t(time) {};
+
 	T datum;
 	S t = 0;
 };

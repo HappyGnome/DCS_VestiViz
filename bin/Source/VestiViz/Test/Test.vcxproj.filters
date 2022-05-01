@@ -23,9 +23,6 @@
     <ClInclude Include="MultiplyFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LoggerFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TestIOWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>

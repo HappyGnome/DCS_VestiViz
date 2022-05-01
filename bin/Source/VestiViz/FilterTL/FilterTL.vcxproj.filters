@@ -138,5 +138,8 @@
     <ClInclude Include="DynMatMultPickDIF.h">
       <Filter>Header Files\Filters\Implementations</Filter>
     </ClInclude>
+    <ClInclude Include="LogSIF.h">
+      <Filter>Header Files\Filters\Implementations</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

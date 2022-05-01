@@ -17,7 +17,7 @@ class DatumArr {
 	std::array<V,N> mVec;
 
 public:
-
+	//explicit DatumArr(const DatumArr<S,V,N>& other) : mVec(other.mVec) {};
 	explicit DatumArr(const std::array<V, N>&& v) : mVec(v) {};
 
 	explicit DatumArr(const V& v) : mVec() { mVec.fill(v); }

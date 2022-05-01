@@ -194,6 +194,7 @@
     <ClInclude Include="DoubleInputFilterBase.h" />
     <ClInclude Include="DynMatMultFilterAction.h" />
     <ClInclude Include="LinCombFilterAction.h" />
+    <ClInclude Include="LogSIF.h" />
     <ClInclude Include="SimpleDiffSIF.h" />
     <ClInclude Include="TemplateInterchangeWrapper.h" />
     <ClInclude Include="QCompSIF.h" />

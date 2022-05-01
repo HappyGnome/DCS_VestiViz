@@ -3,7 +3,7 @@
 
 #include "MultiplyFilter.h"
 #include "ConvOutF.h"
-#include "LoggerFilter.h"
+#include "LogSIF.h"
 #include "ExpDecaySIF.h"
 #include "RegDiffSIF.h"
 #include "QCompSIF.h"
@@ -13,16 +13,20 @@
 
 #include "DatumMatrix.h"
 
+//#define _DEBUG_LOG_PIPE
+#include "VestivizPipeline.h"
+
+
 using namespace std::chrono_literals;
 
 
 void Test1() {
     MultiplyProcessor m1(2);
-    LogSIF<float, float> l1("Doubled ");
+    LogSIF<float, float, Test_IOWrapper> l1("Doubled ");
     ExpDecaySIF<float,float, Test_IOWrapper> e1(1);
-    LogSIF<float, float> l2("Decay ");
+    LogSIF<float, float, Test_IOWrapper> l2("Decay ");
     ConvOutF<float, float, Test_IOWrapper> a1({ 0.5f,0.5f });
-    LogOF<float, float> l3("Output ");
+    LogOF<float, float, Test_IOWrapper> l3("Output ");
     auto input = Test_IOWrapper::Unwrap<TDf>(m1.getInput(0));
 
     m1.setOutput(l1.getInput(0));
@@ -55,7 +59,7 @@ void Test1() {
 
 void Test2() {
     RegDiffSIF<float,float, Test_IOWrapper> rd1(16);
-    LogSIF<float, float> l1("Accel: ");
+    LogSIF<float, float, Test_IOWrapper> l1("Accel: ");
   
     auto input = Test_IOWrapper::Unwrap<TDf>(rd1.getInput(0));
 
@@ -90,7 +94,7 @@ void Test3() {
 }
 void Test4() {
     QCompSIF<float,float, Test_IOWrapper> rd1(0.5f);
-    LogSIF<float, float> l1("Compress: ");
+    LogSIF<float, float, Test_IOWrapper> l1("Compress: ");
 
     auto input = Test_IOWrapper::Unwrap<TDf>(rd1.getInput(0));
 
@@ -113,11 +117,11 @@ void Test4() {
 void Test5() {
     StatMatMultSIF<float,float, Test_IOWrapper,2,3> s1(DatumMatrix<float,2,3>(1.0f,2.0f,3.0f,
                                                               4.0f, 5.0f, 6.0f));
-    LogSIF<float,DatumArr<float,float,2>> l1("Stat ");
+    LogSIF<float,DatumArr<float,float,2>, Test_IOWrapper> l1("Stat ");
     DynMatMultDIF<float, float, Test_IOWrapper, 1, 2> d1;
-    LogSIF<float, DatumArr<float, float, 1>> l2("Dyn ");
+    LogSIF<float, DatumArr<float, float, 1>, Test_IOWrapper> l2("Dyn ");
     LinCombDIF<float, DatumArr<float, float, 1>, Test_IOWrapper> c1(2.0f,1.0f);
-    LogSIF<float, DatumArr<float, float, 1>> l3("Comb ");
+    LogSIF<float, DatumArr<float, float, 1>, Test_IOWrapper> l3("Comb ");
 
     auto input = Test_IOWrapper::Unwrap<TimedDatum<float, DatumArr<float, float, 3>>>(s1.getInput(0));
     auto matInput = Test_IOWrapper::Unwrap<TimedDatum<float, DatumMatrix<float, 1, 2>>>(d1.getInput(1));
@@ -137,9 +141,12 @@ void Test5() {
     l3.startProcessing();
 
     for (int i = 0; i < 100; i++) {
-        input->addDatum(TimedDatum<float, DatumArr<float, float, 3>>{DatumArr<float, float, 3>((float)i, (float)i, (float)i),0.01f * (float)i });
-        matInput->addDatum(TimedDatum<float, DatumMatrix<float, 1, 2>>{DatumMatrix<float, 1, 2>((float)i, (float)i), 0.01f * (float)i });
-        inputConst->addDatum(TimedDatum<float, DatumArr<float, float, 1>>{DatumArr<float, float, 1>((float)i), 0.01f * (float)i });
+        input->addDatum(TimedDatum<float, DatumArr<float, float, 3>>
+            (0.01f * (float)i, DatumArr<float, float, 3>((float)i, (float)i, (float)i)));
+        matInput->addDatum(TimedDatum<float, DatumMatrix<float, 1, 2>>
+            (0.01f * (float)i, DatumMatrix<float, 1, 2>((float)i, (float)i)));
+        inputConst->addDatum(TimedDatum<float, DatumArr<float, float, 1>>
+            (0.01f * (float)i, DatumArr<float, float, 1>((float)i)));
         //std::this_thread::sleep_for(15ms);
     }
     s1.stopProcessing();
@@ -152,19 +159,35 @@ void Test5() {
     std::cout << "End";
 }
 
+void Test6() {
+    auto vp = VestivizPipeline<float>();
+
+    vp.init();
+
+    vp.startPipeline();
+
+    for (int i = 0; i < 100; i++) {
+        vp.addDatum((float)i*0.1f, DatumMatrix<float, 3, 3>(1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f,8.0f,9.0f), DatumArr<float, float, 3>((float)(i*i)*1.0f, 2.0f, 3.0f));
+        std::cout << vp.getDatum().datum<<std::endl;
+        std::this_thread::sleep_for(30ms);
+    }
+
+    vp.stopPipeline();
+}
 
 int main()
 {
-    Test1();
+   /* Test1();
     Test2();
     Test3();
     Test4();
-    Test5();
+    Test5();*/
+    Test6();
 
-    DatumMatrix<float, 3, 2> mat = DatumMatrix<float, 3, 2>(1.0f, 0.0f, 1.0f, 2.0f, 1.0f, 0.0f);
+   /* DatumMatrix<float, 3, 2> mat = DatumMatrix<float, 3, 2>(1.0f, 0.0f, 1.0f, 2.0f, 1.0f, 0.0f);
     std::cout << mat <<std::endl;
     DatumArr<float,float, 2> vec = DatumArr<float,float, 2>(1.0f, 2.0f);
     std::cout << vec << std::endl;
     std::cout << mat.applyTo(vec) << std::endl;
-
+    */
 }
