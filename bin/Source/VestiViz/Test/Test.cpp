@@ -167,9 +167,10 @@ void Test6() {
     vp.startPipeline();
 
     for (int i = 0; i < 100; i++) {
-        vp.addDatum((float)i*0.1f, DatumMatrix<float, 3, 3>(1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f,8.0f,9.0f), DatumArr<float, float, 3>((float)(i*i)*1.0f, 2.0f, 3.0f));
-        std::cout << vp.getDatum().datum<<std::endl;
-        std::this_thread::sleep_for(30ms);
+        vp.addDatum((float)i, DatumMatrix<float, 3, 3>(1.0f,0.0f,0.0f,0.0f,-1.0f,0.0f,0.0f,0.0f,1.0f), DatumArr<float, float, 3>((float)(i*i)*0.0f, 2.0f, 3.0f));
+        auto val = vp.getDatum();
+        std::cout << val.datum<<" t: "<< val.t<< std::endl;
+        //std::this_thread::sleep_for(30ms);
     }
 
     vp.stopPipeline();

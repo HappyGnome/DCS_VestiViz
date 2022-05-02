@@ -176,14 +176,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="DynMatMultDIF.h" />
-    <ClInclude Include="DynMatMultPickDIF.h" />
     <ClInclude Include="DynMatMultPickFilterAction.h" />
-    <ClInclude Include="ExpDecaySIF.h" />
+    <ClInclude Include="LogFilterAction.h" />
     <ClInclude Include="PipelineBase.h" />
-    <ClInclude Include="LinCombDIF.h" />
     <ClInclude Include="AsyncFilter.h" />
-    <ClInclude Include="ConvOutF.h" />
     <ClInclude Include="CircPostbox.h" />
     <ClInclude Include="ConvolveFilterAction.h" />
     <ClInclude Include="Datacomp.h" />
@@ -195,15 +191,11 @@
     <ClInclude Include="DoubleInputFilterBase.h" />
     <ClInclude Include="DynMatMultFilterAction.h" />
     <ClInclude Include="LinCombFilterAction.h" />
-    <ClInclude Include="LogSIF.h" />
-    <ClInclude Include="SimpleDiffSIF.h" />
+    <ClInclude Include="StatAddFilterAction.h" />
     <ClInclude Include="TemplateInterchangeWrapper.h" />
-    <ClInclude Include="QCompSIF.h" />
     <ClInclude Include="QuickCompressFilterAction.h" />
-    <ClInclude Include="RegDiffSIF.h" />
     <ClInclude Include="SimpleDiffFilterAction.h" />
     <ClInclude Include="StatMatMultFilterAction.h" />
-    <ClInclude Include="StatMatMultSIF.h" />
     <ClInclude Include="TimedDatum.h" />
     <ClInclude Include="SimplePostbox.h" />
     <ClInclude Include="SingleInputFilterBase.h" />

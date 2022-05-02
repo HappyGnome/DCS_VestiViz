@@ -9,10 +9,11 @@
 #include "SimpleDiffSIF.h"
 #include "QCompSIF.h"
 #include "DynMatMultDIF.h"
+#include "StatAddFilterAction.h"
 #include "DynMatMultPickDIF.h"
 #include "LinCombFilterAction.h"//"LinCombDIF.h"
 #include "StatMatMultSIF.h"
-#include "LogSIF.h"
+#include "LogFilterAction.h"
 #include "PipelineBase.h"
 #include "DatumMatrix.h"
 #include "PIB_Wrapper.h"
@@ -45,11 +46,26 @@ public:
 
 		addBufferedSIF(NEW_INPUT, 8, PFAB<S,V3, V3>
 			(new AccelByRegressionFilterAction<S, V3, CircBufL>()), gLeaf);
+		addSimpleSIF(
+			gLeaf,
+			PFAB<S, V3, V3>(new StatAddFilterAction<S, V3, CircBufL>(V3(0.0f, 9.81f, 0.0f))),
+			gLeaf);
 		addSimpleDIF(
 			gLeaf, 
 			NEW_INPUT, 
 			PDFAB<S, V3, M3, V3>(new DynMatMultFilterAction<S,V3,V3,M3,CircBufL,CircBufL> ()),
 			gLeaf);
+		addSimpleSIF(
+			gLeaf,
+			PFAB<S, V3, V3>(new StatAddFilterAction<S, V3, CircBufL>(V3(0.0f, -9.81f, 0.0f))),
+			gLeaf);
+#ifdef _DEBUG_LOG_PIPE
+		addSimpleSIF(
+			gLeaf,
+			PFAB<S, V3, V3>(new LogFilterAction<S, V3>("LocalG ")),
+			gLeaf);
+#endif //_DEBUG_LOG_PIPE
+
 		addSimpleSIF(
 			gLeaf,
 			PFAB<S, V3, V3>(new QuickCompressFilterAction<S, V3, CircBufL>(V3(1.0f, 1.0f, 1.0f))),
@@ -136,48 +152,6 @@ public:
 			PFAB<S, V8, V8>
 			(new ConvolveFilterAction<S, V8, CircBufL>(std::vector<S>{0.25f, 0.5f, 0.25f})),
 			outLeaf);
-
-#ifdef _DEBUG_LOG_PIPE
-		auto lg1 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 3>, PIB_Wrapper>("g1 "));
-		auto lg2 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 3>, PIB_Wrapper>("g2 "));
-		auto lg3 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 3>, PIB_Wrapper>("g3 "));
-		auto lg4 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 3>, PIB_Wrapper>("g4 "));
-		auto lg5 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 8>, PIB_Wrapper>("g5 "));
-		auto lc1 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 8>, PIB_Wrapper>("c1 "));
-		auto lc2 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 8>, PIB_Wrapper>("c2 "));
-		auto lr1 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 6>, PIB_Wrapper>("r1 "));
-		auto lr2 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 3>, PIB_Wrapper>("r2 "));
-		auto lr3 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 3>, PIB_Wrapper>("r3 "));
-		auto lr4 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 3>, PIB_Wrapper>("r4 "));
-		auto lr5 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 8>, PIB_Wrapper>("r5 "));
-#endif // _DEBUG_LOG_PIPE
-
-
-#ifdef _DEBUG_LOG_PIPE
-		posDiff->setOutput(lg1->getInput(0));
-		lg1->setOutput(toLocalFrame->getInput(0));
-		xyDiff->setOutput(lr1->getInput(0));
-		lr1->setOutput(xyToLocalRot->getInput(0));
-		toLocalFrame->setOutput(lg2->getInput(0));
-		lg2->setOutput(gCompress->getInput(0));
-		xyToLocalRot->setOutput(lr2->getInput(0));
-		lr2->setOutput(rotCompress->getInput(0));
-		gCompress->setOutput(lg3->getInput(0));
-		lg3->setOutput(gDecay->getInput(0));
-		rotCompress->setOutput(rotDecay->getInput(0));
-		gDecay->setOutput(lg4->getInput(0));
-		lg4->setOutput(gToScreen->getInput(0));
-		rotDecay->setOutput(rotToScreen->getInput(0));
-		gToScreen->setOutput(lg5->getInput(0));
-		lg5->setOutput(gRotCombiner->getInput(0));
-		rotToScreen->setOutput(gRotCombiner->getInput(1));
-		gRotCombiner->setOutput(lc1->getInput(0));
-		lc1->setOutput(finalCompress->getInput(0));
-		finalCompress->setOutput(lc2->getInput(0));
-		lc2->setOutput(finalConvolve->getInput(0));
-#else
-
-#endif // _DEBUG_LOG_PIPE
 
 		mInputCamP = PIB_Wrapper::Unwrap<TimedDatum<S, V3>>(getInput(0));
 		mInputCamFrame = PIB_Wrapper::Unwrap<TimedDatum<S, M3>>(getInput(1));
