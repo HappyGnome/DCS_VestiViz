@@ -154,8 +154,6 @@ else
 	VestiViz.log(vestiviz.Foo())
 end
 
-
-
 -----------------------------------------------------------
 --FILTERS AND ALGEBRA
 VestiViz.addToTail = function(accum, u, decay)

@@ -9,9 +9,9 @@
 
 using PIB_Wrapper = TemplateInterchangeWrapper<
 	PostboxInputBase, 
-	TimedDatum<float, DatumArr<float, float, 6>>,
-	TimedDatum<float, DatumArr<float, float, 3>>,
-	TimedDatum<float, DatumMatrix<float, 3, 3>>,
-	TimedDatum<float, DatumArr<float, float, 8>>>;
+	TimedDatum<double, DatumArr<double, double, 6>>,
+	TimedDatum<double, DatumArr<double, double, 3>>,
+	TimedDatum<double, DatumMatrix<double, 3, 3>>,
+	TimedDatum<double, DatumArr<double, double, 8>>>;
 
 #endif

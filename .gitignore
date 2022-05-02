@@ -11,6 +11,8 @@ bin/Source/VestiViz/VestiViz/Release
 bin/Source/VestiViz/VestiViz/*.user
 bin/Source/VestiViz/Test/*.user
 bin/Source/VestiViz/Test/x64
+bin/Source/VestiViz/LuaTest/*.user
+bin/Source/VestiViz/LuaTest/x64
 bin/Source/VestiViz/FilterTL/x64
 bin/Source/VestiViz/FilterTL/Release
 bin/Source/VestiViz/FilterTL/*.user

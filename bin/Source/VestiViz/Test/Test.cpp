@@ -22,11 +22,11 @@ using namespace std::chrono_literals;
 
 void Test1() {
     MultiplyProcessor m1(2);
-    LogSIF<float, float, Test_IOWrapper> l1("Doubled ");
-    ExpDecaySIF<float,float, Test_IOWrapper> e1(1);
-    LogSIF<float, float, Test_IOWrapper> l2("Decay ");
-    ConvOutF<float, float, Test_IOWrapper> a1({ 0.5f,0.5f });
-    LogOF<float, float, Test_IOWrapper> l3("Output ");
+    LogSIF<double, double, Test_IOWrapper> l1("Doubled ");
+    ExpDecaySIF<double,double, Test_IOWrapper> e1(1);
+    LogSIF<double, double, Test_IOWrapper> l2("Decay ");
+    ConvOutF<double, double, Test_IOWrapper> a1({ 0.5f,0.5f });
+    LogOF<double, double, Test_IOWrapper> l3("Output ");
     auto input = Test_IOWrapper::Unwrap<TDf>(m1.getInput(0));
 
     m1.setOutput(l1.getInput(0));
@@ -43,7 +43,7 @@ void Test1() {
     l3.startProcessing();
 
     for (int i = 0; i < 100; i++) {
-        input->addDatum(TDf{ (float)1,0.01f * (float)i });
+        input->addDatum(TDf{ (double)1,0.01 * (double)i });
         //std::this_thread::sleep_for(15ms);
     }
     m1.stopProcessing();
@@ -58,8 +58,8 @@ void Test1() {
 
 
 void Test2() {
-    RegDiffSIF<float,float, Test_IOWrapper> rd1(16);
-    LogSIF<float, float, Test_IOWrapper> l1("Accel: ");
+    RegDiffSIF<double,double, Test_IOWrapper> rd1(16);
+    LogSIF<double, double, Test_IOWrapper> l1("Accel: ");
   
     auto input = Test_IOWrapper::Unwrap<TDf>(rd1.getInput(0));
 
@@ -71,9 +71,9 @@ void Test2() {
    
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> rng(-0.005f,0.005f);
+    std::uniform_real_distribution<double> rng(-0.005f,0.005f);
     for (int i = 0; i < 100; i++) {
-        input->addDatum(TDf{ (float)i*i*0.0004f + rng(gen),0.01f * (float)i });
+        input->addDatum(TDf{ (double)i*i*0.0004 + rng(gen),0.01 * (double)i });
        // std::this_thread::sleep_for(15ms);
     }
     rd1.stopProcessing();
@@ -83,18 +83,18 @@ void Test2() {
 }
 
 void Test3() {
-    Vec3Datum<float> myVec( 2.0f,3.0f,4.0f );
+    Vec3Datum<double> myVec( 2.0f,3.0f,4.0f );
 
-    Vec3Datum<float> compScale1(2.0f, 3.0f, 4.0f);
-    std::cout << Datacomp<float, Vec3Datum<float>>::qComp(myVec, compScale1) << std::endl;
-    Datacomp<float, Vec3Datum<float>>::qCompEq(myVec, compScale1);
+    Vec3Datum<double> compScale1(2.0f, 3.0f, 4.0f);
+    std::cout << Datacomp<double, Vec3Datum<double>>::qComp(myVec, compScale1) << std::endl;
+    Datacomp<double, Vec3Datum<double>>::qCompEq(myVec, compScale1);
     std::cout << myVec << std::endl;
 
     std::cout << "End";
 }
 void Test4() {
-    QCompSIF<float,float, Test_IOWrapper> rd1(0.5f);
-    LogSIF<float, float, Test_IOWrapper> l1("Compress: ");
+    QCompSIF<double,double, Test_IOWrapper> rd1(0.5f);
+    LogSIF<double, double, Test_IOWrapper> l1("Compress: ");
 
     auto input = Test_IOWrapper::Unwrap<TDf>(rd1.getInput(0));
 
@@ -105,7 +105,7 @@ void Test4() {
     l1.startProcessing();
 
     for (int i = 0; i < 100; i++) {
-        input->addDatum(TDf{ (float)i*0.01f ,0.01f * (float)i });
+        input->addDatum(TDf{ (double)i*0.01f ,0.01f * (double)i });
         //std::this_thread::sleep_for(15ms);
     }
     rd1.stopProcessing();
@@ -115,17 +115,17 @@ void Test4() {
 }
 
 void Test5() {
-    StatMatMultSIF<float,float, Test_IOWrapper,2,3> s1(DatumMatrix<float,2,3>(1.0f,2.0f,3.0f,
+    StatMatMultSIF<double,double, Test_IOWrapper,2,3> s1(DatumMatrix<double,2,3>(1.0f,2.0f,3.0f,
                                                               4.0f, 5.0f, 6.0f));
-    LogSIF<float,DatumArr<float,float,2>, Test_IOWrapper> l1("Stat ");
-    DynMatMultDIF<float, float, Test_IOWrapper, 1, 2> d1;
-    LogSIF<float, DatumArr<float, float, 1>, Test_IOWrapper> l2("Dyn ");
-    LinCombDIF<float, DatumArr<float, float, 1>, Test_IOWrapper> c1(2.0f,1.0f);
-    LogSIF<float, DatumArr<float, float, 1>, Test_IOWrapper> l3("Comb ");
+    LogSIF<double,DatumArr<double,double,2>, Test_IOWrapper> l1("Stat ");
+    DynMatMultDIF<double, double, Test_IOWrapper, 1, 2> d1;
+    LogSIF<double, DatumArr<double, double, 1>, Test_IOWrapper> l2("Dyn ");
+    LinCombDIF<double, DatumArr<double, double, 1>, Test_IOWrapper> c1(2.0f,1.0f);
+    LogSIF<double, DatumArr<double, double, 1>, Test_IOWrapper> l3("Comb ");
 
-    auto input = Test_IOWrapper::Unwrap<TimedDatum<float, DatumArr<float, float, 3>>>(s1.getInput(0));
-    auto matInput = Test_IOWrapper::Unwrap<TimedDatum<float, DatumMatrix<float, 1, 2>>>(d1.getInput(1));
-    auto inputConst = Test_IOWrapper::Unwrap<TimedDatum<float, DatumArr<float, float, 1>>>(c1.getInput(1));
+    auto input = Test_IOWrapper::Unwrap<TimedDatum<double, DatumArr<double, double, 3>>>(s1.getInput(0));
+    auto matInput = Test_IOWrapper::Unwrap<TimedDatum<double, DatumMatrix<double, 1, 2>>>(d1.getInput(1));
+    auto inputConst = Test_IOWrapper::Unwrap<TimedDatum<double, DatumArr<double, double, 1>>>(c1.getInput(1));
 
     s1.setOutput(l1.getInput(0));
     l1.setOutput(d1.getInput(0));
@@ -141,12 +141,12 @@ void Test5() {
     l3.startProcessing();
 
     for (int i = 0; i < 100; i++) {
-        input->addDatum(TimedDatum<float, DatumArr<float, float, 3>>
-            (0.01f * (float)i, DatumArr<float, float, 3>((float)i, (float)i, (float)i)));
-        matInput->addDatum(TimedDatum<float, DatumMatrix<float, 1, 2>>
-            (0.01f * (float)i, DatumMatrix<float, 1, 2>((float)i, (float)i)));
-        inputConst->addDatum(TimedDatum<float, DatumArr<float, float, 1>>
-            (0.01f * (float)i, DatumArr<float, float, 1>((float)i)));
+        input->addDatum(TimedDatum<double, DatumArr<double, double, 3>>
+            (0.01f * (double)i, DatumArr<double, double, 3>((double)i, (double)i, (double)i)));
+        matInput->addDatum(TimedDatum<double, DatumMatrix<double, 1, 2>>
+            (0.01f * (double)i, DatumMatrix<double, 1, 2>((double)i, (double)i)));
+        inputConst->addDatum(TimedDatum<double, DatumArr<double, double, 1>>
+            (0.01f * (double)i, DatumArr<double, double, 1>((double)i)));
         //std::this_thread::sleep_for(15ms);
     }
     s1.stopProcessing();
@@ -160,14 +160,14 @@ void Test5() {
 }
 
 void Test6() {
-    auto vp = VestivizPipeline<float>();
+    auto vp = VestivizPipeline<double>();
 
     vp.init();
 
     vp.startPipeline();
 
     for (int i = 0; i < 100; i++) {
-        vp.addDatum((float)i, DatumMatrix<float, 3, 3>(1.0f,0.0f,0.0f,0.0f,-1.0f,0.0f,0.0f,0.0f,1.0f), DatumArr<float, float, 3>((float)(i*i)*0.0f, 2.0f, 3.0f));
+        vp.addDatum((double)i, DatumMatrix<double, 3, 3>(1.0f,0.0f,0.0f,0.0f,-1.0f,0.0f,0.0f,0.0f,1.0f), DatumArr<double, double, 3>((double)(i*i)*0.0f, 2.0f, 3.0f));
         auto val = vp.getDatum();
         std::cout << val.datum<<" t: "<< val.t<< std::endl;
         //std::this_thread::sleep_for(30ms);
@@ -185,9 +185,9 @@ int main()
     Test5();*/
     Test6();
 
-   /* DatumMatrix<float, 3, 2> mat = DatumMatrix<float, 3, 2>(1.0f, 0.0f, 1.0f, 2.0f, 1.0f, 0.0f);
+   /* DatumMatrix<double, 3, 2> mat = DatumMatrix<double, 3, 2>(1.0f, 0.0f, 1.0f, 2.0f, 1.0f, 0.0f);
     std::cout << mat <<std::endl;
-    DatumArr<float,float, 2> vec = DatumArr<float,float, 2>(1.0f, 2.0f);
+    DatumArr<double,double, 2> vec = DatumArr<double,double, 2>(1.0f, 2.0f);
     std::cout << vec << std::endl;
     std::cout << mat.applyTo(vec) << std::endl;
     */

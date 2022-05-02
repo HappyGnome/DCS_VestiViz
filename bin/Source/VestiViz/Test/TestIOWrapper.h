@@ -9,10 +9,10 @@
 
 using Test_IOWrapper = TemplateInterchangeWrapper<
 	PostboxInputBase,
-	TimedDatum<float, float>,
-	TimedDatum<float, DatumArr<float, float, 2>>,
-	TimedDatum<float, DatumArr<float, float, 3>>,
-	TimedDatum<float, DatumMatrix<float, 1, 2>>,
-	TimedDatum<float, DatumArr<float, float, 1>>>;
+	TimedDatum<double, double>,
+	TimedDatum<double, DatumArr<double, double, 2>>,
+	TimedDatum<double, DatumArr<double, double, 3>>,
+	TimedDatum<double, DatumMatrix<double, 1, 2>>,
+	TimedDatum<double, DatumArr<double, double, 1>>>;
 
 #endif

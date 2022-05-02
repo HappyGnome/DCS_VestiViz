@@ -12,12 +12,12 @@
 #include"TimedDatum.h"
 #include "TestIOWrapper.h"
 
-using TDf = TimedDatum<float, float> ;
+using TDf = TimedDatum<double, double> ;
 
 class MultiplyAction:public FilterActionBase<TDf,TDf, CircBufL> {
-	float mScale;
+	double mScale;
 public:
-	explicit MultiplyAction(float scale):mScale(scale){};
+	explicit MultiplyAction(double scale):mScale(scale){};
 	virtual ~MultiplyAction() = default;
 
 	TDf actOn(const CircBufL<TDf>& data) override {
@@ -29,7 +29,7 @@ public:
 };
 
 struct MultiplyProcessor : public SingleInputFilterBase<TDf, TDf, Test_IOWrapper, CircBufL> {
-	explicit MultiplyProcessor(float scale) :SingleInputFilterBase<TDf, TDf, Test_IOWrapper, CircBufL>
+	explicit MultiplyProcessor(double scale) :SingleInputFilterBase<TDf, TDf, Test_IOWrapper, CircBufL>
 		(std::make_shared<SimplePostbox<TDf>>(),
 		 std::make_unique<MultiplyAction>(scale)) {};
 	virtual ~MultiplyProcessor() {};
