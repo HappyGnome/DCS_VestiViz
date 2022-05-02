@@ -44,6 +44,7 @@ public:
 	}
 
 	virtual bool setOutput (typename IOWrapper::Wrapped&& wrappedInput) = 0;
+	virtual void unsetOutput() = 0;
 	virtual typename IOWrapper::Wrapped getInput(int index) = 0;
 };
 #endif

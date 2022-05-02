@@ -15,7 +15,7 @@ template <
 	typename S,
 	typename T,
 	template<typename, typename> typename L,
-	typename LAlloc = std::allocator<T>>
+	typename LAlloc = std::allocator<TimedDatum<S, T>>>
 class LinCombFilterAction : public DoubleFilterActionBase<
 	TimedDatum<S, T>,
 	TimedDatum<S, T>,
@@ -30,6 +30,8 @@ class LinCombFilterAction : public DoubleFilterActionBase<
 	S mScaleTX;
 	S mScaleTY;
 public:
+	LinCombFilterAction() = default;
+
 	explicit LinCombFilterAction(S scaleX, S scaleY) : mScaleX(scaleX), mScaleY(scaleY) {
 		mScaleTX = std::abs(mScaleX);
 		mScaleTY = std::abs(mScaleY);

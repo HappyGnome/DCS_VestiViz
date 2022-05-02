@@ -10,15 +10,15 @@
 #include "QCompSIF.h"
 #include "DynMatMultDIF.h"
 #include "DynMatMultPickDIF.h"
-#include "LinCombDIF.h"
+#include "LinCombFilterAction.h"//"LinCombDIF.h"
 #include "StatMatMultSIF.h"
-#include"LogSIF.h"
-
+#include "LogSIF.h"
+#include "PipelineBase.h"
 #include "DatumMatrix.h"
 #include "PIB_Wrapper.h"
 
 template<typename S>
-class VestivizPipeline {
+class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 
 	std::vector< std::shared_ptr<AsyncFilter<PIB_Wrapper>>> mFilters;
 
@@ -31,68 +31,111 @@ class VestivizPipeline {
 public:
 
 	VestivizPipeline() :mOutput(new SimplePostbox<TimedDatum<S, DatumArr<S, S, 8>>>()) {};
-
-	void startPipeline() {
-		for (auto it = mFilters.begin(); it!=mFilters.end();it++)
-		{
-			(*it)->startProcessing();
-		}
-	}
-	void stopPipeline() {
-		for (auto it = mFilters.begin(); it != mFilters.end(); it++)
-		{
-			(*it)->stopProcessing();
-		}
-	}
 	
 	void init() {
-	    auto posDiff = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new RegDiffSIF<S, DatumArr<S, S, 3>, PIB_Wrapper>(8));
-		auto xyDiff = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new SimpleDiffSIF<S, DatumArr<S, S, 6>, PIB_Wrapper>());
-		auto toLocalFrame = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new DynMatMultDIF<S, S, PIB_Wrapper, 3, 3> ());
-		auto  xyToLocalRot = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new DynMatMultPickDIF<S, S, PIB_Wrapper, 3, 3, 6, 3>(
-			std::array<std::tuple<std::size_t, std::size_t>, 3>{
-			std::tuple<std::size_t, std::size_t>(2,1), //x-axis rot
-			std::tuple<std::size_t, std::size_t>(2, 0), // negative y-axis rot
-			std::tuple<std::size_t, std::size_t>(1, 0) //z-axis rot
-			}));
+		std::size_t gLeaf;
+		std::size_t rotLeaf;
+		std::size_t outLeaf;
 
-		auto gCompress = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new QCompSIF<S, DatumArr<S, S, 3>, PIB_Wrapper> (DatumArr<S, S, 3>(1.0f,1.0f,1.0f)));
-		auto  rotCompress = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new QCompSIF<S, DatumArr<S, S, 3>, PIB_Wrapper>(DatumArr<S, S, 3>(1.0f, 1.0f, 1.0f)));
+		using V3 = DatumArr<S, S, 3>;
+		using V6 = DatumArr<S, S, 6>;
+		using V8 = DatumArr<S, S, 8>;
+		using M3 = DatumMatrix<S, 3, 3>;
+		using M8x3 = DatumMatrix<S, 8, 3>;
 
-		auto gDecay = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new ExpDecaySIF<S, DatumArr<S, S, 3>, PIB_Wrapper> (1.0f));
-		auto rotDecay = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new ExpDecaySIF<S, DatumArr<S, S, 3>, PIB_Wrapper> (1.0f));
-		
+		addBufferedSIF(NEW_INPUT, 8, PFAB<S,V3, V3>
+			(new AccelByRegressionFilterAction<S, V3, CircBufL>()), gLeaf);
+		addSimpleDIF(
+			gLeaf, 
+			NEW_INPUT, 
+			PDFAB<S, V3, M3, V3>(new DynMatMultFilterAction<S,V3,V3,M3,CircBufL,CircBufL> ()),
+			gLeaf);
+		addSimpleSIF(
+			gLeaf,
+			PFAB<S, V3, V3>(new QuickCompressFilterAction<S, V3, CircBufL>(V3(1.0f, 1.0f, 1.0f))),
+			gLeaf);
+		addSimpleSIF(
+			gLeaf,
+			PFAB<S, V3, V3>
+			(new ExpDecayFilterAction<S, V3, CircBufL>(1.0f)),
+			gLeaf);
+
+		addSimpleSIF(
+			gLeaf,
+			PFAB<S, V3,V8>
+			(new StatMatMultFilterAction<S,V3,M8x3,V8,CircBufL> (
+				M8x3(0.5f, -0.5f, 0.0f,//T width
+					0.5f, 0.0f, -0.5f,//R width
+					0.5f, 0.5f, 0.0f,//B width
+					0.5f, 0.0f, 0.5f,//L width
+					0.0f, 0.0f, 1.0f, //T somatograv
+					1.0f, 0.0f, 1.0f,//R
+					0.0f, 0.0f, -1.0f,//B
+					1.0f, 0.0f, -1.0f))),//L))),
+			gLeaf);
 		/*
 		* Output: TRBL widths,
-		*		  TRBL displacement (Top Left origin)
+		* TRBL displacement (Top Left origin)
 		*/
-		auto gToScreen = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new StatMatMultSIF<S, S, PIB_Wrapper, 8, 3> (DatumMatrix<S, 8, 3>
-			(0.5f, -0.5f, 0.0f,//T width
-			0.5f, 0.0f, -0.5f,//R width
-			0.5f, 0.5f, 0.0f,//B width
-			0.5f, 0.0f, 0.5f,//L width
-			0.0f, 0.0f, 1.0f, //T somatograv
-			1.0f, 0.0f, 1.0f,//R
-			0.0f, 0.0f, -1.0f,//B
-			1.0f, 0.0f, -1.0f)));//L
+		addBufferedSIF(NEW_INPUT, 2, PFAB<S, V6, V6>
+			(new SimpleDiffFilterAction<S, V6, CircBufL>()), rotLeaf);
 
-		auto rotToScreen = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new StatMatMultSIF<S, S, PIB_Wrapper, 8, 3> (DatumMatrix<S, 8, 3>
-			(0.0f, 0.0f, 0.0f,//T width
-			0.0f, 0.0f, 0.0f,//R
-			0.0f, 0.0f, 0.0f,//B
-			0.0f, 0.0f, 0.0f,//L 
-			-1.0f, 1.0f, 0.0f, //T displacement
-			-1.0f, 0.0f, 1.0f,//R
-			1.0f, 1.0f, 0.0f,//B
-			1.0f, 0.0f, 1.0f)));//L
+		addSimpleDIF(
+			rotLeaf,
+			NEW_INPUT,
+			PDFAB<S, V6, M3, V3>(new DynMatMultPickFilterAction<S,S,3,3,6,3,CircBufL,CircBufL> (
+					std::array<std::tuple<std::size_t, std::size_t>, 3>{
+						std::tuple<std::size_t, std::size_t>(2, 1), //x-axis rot
+						std::tuple<std::size_t, std::size_t>(2, 0), // negative y-axis rot
+						std::tuple<std::size_t, std::size_t>(1, 0) //z-axis rot
+					}
+				)),
+			rotLeaf);
 
-		auto gRotCombiner = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LinCombDIF<S, DatumArr<S, S, 8>, PIB_Wrapper> (1.0f,1.0f));
+		addSimpleSIF(
+			rotLeaf,
+			PFAB<S, V3, V3>
+			(new QuickCompressFilterAction<S, V3, CircBufL> (V3(1.0f, 1.0f, 1.0f))),
+			rotLeaf);
 
-		auto finalCompress = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new QCompSIF<S, DatumArr<S, S, 8>, PIB_Wrapper> 
-			(DatumArr<S, S, 8>(1.0f,1.0f,1.0f,1.0f, 1.0f, 1.0f, 1.0f, 1.0f)));
+		addSimpleSIF(
+			rotLeaf,
+			PFAB<S, V3, V3>
+			(new ExpDecayFilterAction<S, V3, CircBufL>(1.0f)),
+			rotLeaf);
+		
+		addSimpleSIF(
+			rotLeaf,
+			PFAB<S, V3,V8>
+				(new StatMatMultFilterAction<S, V3, M8x3, V8, CircBufL>(
+					M8x3(0.0f, 0.0f, 0.0f,//T width
+						0.0f, 0.0f, 0.0f,//R
+						0.0f, 0.0f, 0.0f,//B
+						0.0f, 0.0f, 0.0f,//L 
+						-1.0f, 1.0f, 0.0f, //T displacement
+						-1.0f, 0.0f, 1.0f,//R
+						1.0f, 1.0f, 0.0f,//B
+						1.0f, 0.0f, 1.0f))),//L))),
+			rotLeaf);
 
-		auto finalConvolve = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new ConvOutF<S, DatumArr<S, S, 8>, PIB_Wrapper> 
-			(std::vector<S>{0.25f,0.5f,0.25f}));
+		addSimpleDIF(
+			rotLeaf,
+			gLeaf,
+			PDFAB<S, V8, V8, V8>(new LinCombFilterAction<S, V8, CircBufL>(1.0f, 1.0f)),
+			outLeaf);
+
+		addSimpleSIF(
+			outLeaf,
+			PFAB<S, V8, V8>
+				(new QuickCompressFilterAction<S, V8, CircBufL>(V8(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f))),
+			outLeaf);
+
+		addBufferedOutF(
+			outLeaf,
+			3,
+			PFAB<S, V8, V8>
+			(new ConvolveFilterAction<S, V8, CircBufL>(std::vector<S>{0.25f, 0.5f, 0.25f})),
+			outLeaf);
 
 #ifdef _DEBUG_LOG_PIPE
 		auto lg1 = std::shared_ptr<AsyncFilter<PIB_Wrapper>>(new LogSIF<S, DatumArr<S, S, 3>, PIB_Wrapper>("g1 "));
@@ -133,51 +176,14 @@ public:
 		finalCompress->setOutput(lc2->getInput(0));
 		lc2->setOutput(finalConvolve->getInput(0));
 #else
-		posDiff->setOutput(toLocalFrame->getInput(0));
-		xyDiff->setOutput(xyToLocalRot->getInput(0));
-		toLocalFrame->setOutput(gCompress->getInput(0));
-		xyToLocalRot->setOutput(rotCompress->getInput(0));
-		gCompress->setOutput(gDecay->getInput(0));
-		rotCompress->setOutput(rotDecay->getInput(0));
-		gDecay->setOutput(gToScreen->getInput(0));
-		rotDecay->setOutput(rotToScreen->getInput(0));
-		gToScreen->setOutput(gRotCombiner->getInput(0));
-		rotToScreen->setOutput(gRotCombiner->getInput(1));
-		gRotCombiner->setOutput(finalCompress->getInput(0));
-		finalCompress->setOutput(finalConvolve->getInput(0));
+
 #endif // _DEBUG_LOG_PIPE
 
-		mInputCamP = PIB_Wrapper::Unwrap<TimedDatum<S, DatumArr<S, S, 3>>>(posDiff->getInput(0));
-		mInputCamFrame = PIB_Wrapper::Unwrap<TimedDatum<S, DatumMatrix<S, 3, 3>>>(toLocalFrame->getInput(1));
-		mInputCamFrame2 = PIB_Wrapper::Unwrap<TimedDatum<S, DatumMatrix<S, 3, 3>>>(xyToLocalRot->getInput(1));
-		mInputCamXY = PIB_Wrapper::Unwrap<TimedDatum<S, DatumArr<S, S, 6>>>(xyDiff->getInput(0));
-		finalConvolve->setOutput(PIB_Wrapper::Wrap((std::shared_ptr<PostboxInputBase<TimedDatum<S, DatumArr<S, S, 8>>>>)mOutput));
-
-		mFilters.push_back(posDiff);
-		mFilters.push_back(xyDiff);
-		mFilters.push_back(toLocalFrame);
-		mFilters.push_back(xyToLocalRot);
-		mFilters.push_back(gCompress);
-		mFilters.push_back(rotCompress);
-		mFilters.push_back(gDecay);
-		mFilters.push_back(rotDecay);
-		mFilters.push_back(gToScreen);
-		mFilters.push_back(rotToScreen);
-		mFilters.push_back(gRotCombiner);
-		mFilters.push_back(finalCompress);
-		mFilters.push_back(finalConvolve);
-
-#ifdef _DEBUG_LOG_PIPE
-		mFilters.push_back(lg1);
-		mFilters.push_back(lg2);
-		mFilters.push_back(lg3);
-		mFilters.push_back(lg4);
-		mFilters.push_back(lg5);
-		mFilters.push_back(lc1);
-		mFilters.push_back(lc2);
-		mFilters.push_back(lr1);
-		mFilters.push_back(lr2);
-#endif // _DEBUG_LOG_PIPE
+		mInputCamP = PIB_Wrapper::Unwrap<TimedDatum<S, V3>>(getInput(0));
+		mInputCamFrame = PIB_Wrapper::Unwrap<TimedDatum<S, M3>>(getInput(1));
+		mInputCamFrame2 = PIB_Wrapper::Unwrap<TimedDatum<S, M3>>(getInput(3));
+		mInputCamXY = PIB_Wrapper::Unwrap<TimedDatum<S, V6>>(getInput(2));
+		setOutput(outLeaf,PIB_Wrapper::Wrap((std::shared_ptr<PostboxInputBase<TimedDatum<S, V8>>>)mOutput));
 	}
 
 	void addDatum(S t, DatumMatrix<S, 3, 3> && frame, DatumArr<S, S, 3>&& point) {

@@ -63,6 +63,11 @@ public:
 		}
 		return false;
 	}
+	void unsetOutput() final {
+		std::lock_guard<std::mutex> lock(mOutputMutex);
+		if (mOutput != nullptr) mOutput->cancel();
+		mOutput = nullptr;
+	}
 
 	typename IOWrapper::Wrapped getInput(int index) final {
 		if (index != 0)return nullptr;

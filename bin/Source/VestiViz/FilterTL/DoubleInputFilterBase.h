@@ -10,7 +10,7 @@
 #include "FilterActionBase.h"
 
 template <typename Tin1,
-	typename Tin2 ,
+	typename Tin2,
 	typename Tout,
 	typename IOWrapper,
 	template<typename,typename> typename L1,
@@ -65,6 +65,11 @@ public:
 			return true;
 		}
 		return false;
+	}
+	void unsetOutput() final {
+		std::lock_guard<std::mutex> lock(mOutputMutex);
+		if (mOutput != nullptr) mOutput->cancel();
+		mOutput = nullptr;
 	}
 
 	typename IOWrapper::Wrapped getInput(int index) final {

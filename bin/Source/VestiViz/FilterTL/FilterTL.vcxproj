@@ -180,6 +180,7 @@
     <ClInclude Include="DynMatMultPickDIF.h" />
     <ClInclude Include="DynMatMultPickFilterAction.h" />
     <ClInclude Include="ExpDecaySIF.h" />
+    <ClInclude Include="PipelineBase.h" />
     <ClInclude Include="LinCombDIF.h" />
     <ClInclude Include="AsyncFilter.h" />
     <ClInclude Include="ConvOutF.h" />

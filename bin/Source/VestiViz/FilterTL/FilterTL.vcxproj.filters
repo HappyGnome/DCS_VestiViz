@@ -34,6 +34,9 @@
     <Filter Include="Header Files\Postboxes\Wrappers">
       <UniqueIdentifier>{5cc324b0-6cfd-4d71-bf35-c198d934c8dc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Pipelines">
+      <UniqueIdentifier>{4002e6db-6f2b-44b0-adfe-b91fbc66fb06}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CircPostbox.h">
@@ -140,6 +143,9 @@
     </ClInclude>
     <ClInclude Include="LogSIF.h">
       <Filter>Header Files\Filters\Implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineBase.h">
+      <Filter>Header Files\Pipelines</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
