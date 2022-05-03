@@ -17,19 +17,38 @@ public:
         return mPipelines.size() - 1;
     }
 
+    void RemovePipeline(std::size_t index) {
+        std::lock_guard<std::mutex> lock(mPipelinesMutex);
+        if (index >= mPipelines.size()) return;
+        mPipelines[index] = nullptr;
+    }
+
     std::shared_ptr<VestivizPipeline<double>> GetPipeline(std::size_t index) {
         std::lock_guard<std::mutex> lock(mPipelinesMutex);
         if (index >= mPipelines.size()) return nullptr;
         return mPipelines[index];
     }
-
-    std::shared_ptr<VestivizPipeline<double>> GetPipelineArg(lua_State* L) {
+    bool TryGetPipelineIndex(lua_State* L, std::size_t& out) const {
         if (lua_isnumber(L, 1)) {
-            auto index = (std::size_t)lua_tonumber(L, 1);
-            return PipelineManager::GetPipeline(index);
+            out = (std::size_t)lua_tonumber(L, 1);
+            return true;
+        }
+        return false;
+    }
+
+    std::shared_ptr<VestivizPipeline<double>> GetPipelineByArg(lua_State* L, std::size_t& indexOut) {
+        if (TryGetPipelineIndex(L,indexOut)) {
+            return PipelineManager::GetPipeline(indexOut);
         }
         return nullptr;
     }
+
+    std::shared_ptr<VestivizPipeline<double>> GetPipelineByArg(lua_State* L) {
+        std::size_t index;
+        return  GetPipelineByArg(L, index);
+    }
+
+
 };
 
 PipelineManager gPipelineManager;
@@ -63,14 +82,18 @@ static int l_StartPipeline(lua_State* L) {
 }
 
 static int l_StopPipeline(lua_State* L) {
-    auto pipeline = gPipelineManager.GetPipelineArg(L);
-    if (pipeline != nullptr) pipeline->stopPipeline();
+    std::size_t index = -1;
+    auto pipeline = gPipelineManager.GetPipelineByArg(L,index);
+    if (pipeline != nullptr) {
+        pipeline->stopPipeline();
+        gPipelineManager.RemovePipeline(index);
+    }
     return 0;
 }
 
 // void F(handle, t, {p,x,y,z})
 static int l_AddDatum(lua_State* L) {
-    auto pipeline = gPipelineManager.GetPipelineArg(L);
+    auto pipeline = gPipelineManager.GetPipelineByArg(L);
     if (pipeline != nullptr) {
         if (!lua_isnumber(L, 2)) return 0;
         if (!lua_istable(L, 3)) return 0;
@@ -98,7 +121,7 @@ static int l_AddDatum(lua_State* L) {
 }
 //{t,w = {top,right,bottom,left}, off = {top,right,bottom,left}} F(handle)
 static int l_GetDatum(lua_State* L) {
-    auto pipeline = gPipelineManager.GetPipelineArg(L);
+    auto pipeline = gPipelineManager.GetPipelineByArg(L);
     if (pipeline != nullptr) {
 
         auto val = pipeline->getDatum();
