@@ -6,17 +6,18 @@ package.cpath = package.cpath..";"..BinDir.."\\?.dll;"
 --VestiViz.log(_VERSION)
 vestiviz = require('vestiviz')
 
-	Handle = vestiviz.Start()
+	ctx = vestiviz.newContext();
+	pipeline = ctx.newPipeline();
+	pipeline2 = ctx.newPipeline();
 
 	for i=1,1000,1 do
-		vestiviz.AddDatum(Handle,i,
+		pipeline.addDatum(i,
 		{p = {x = 1, y= 2, z = 3},
 		x = {x = 1.1, y= 2.1, z = 3.1},
 		y = {x = 1.2, y= 2.2, z = 3.2},
 		z = {x = 1.3, y= 2.3, z = 3.3}});
-		foo = vestiviz.GetDatum(Handle);
+	end
+	for i=1,1000,1 do
+		foo = pipeline.getDatum();
 		print(i..":"..foo.t);
 	end
-
-
-	vestiviz.Stop(Handle)

@@ -21,8 +21,6 @@
 template<typename S>
 class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 
-	std::vector< std::shared_ptr<AsyncFilter<PIB_Wrapper>>> mFilters;
-
 	std::shared_ptr<PostboxInputBase<TimedDatum<S, DatumArr<S, S, 3>>>> mInputCamP;
 	std::shared_ptr<PostboxInputBase<TimedDatum<S, DatumMatrix<S, 3, 3>>>> mInputCamFrame;
 	std::shared_ptr<PostboxInputBase<TimedDatum<S, DatumMatrix<S, 3, 3>>>> mInputCamFrame2;
