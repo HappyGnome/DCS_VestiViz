@@ -6,13 +6,8 @@ package.cpath = package.cpath..";"..BinDir.."\\?.dll;"
 vestiviz = require('vestiviz')
 
 foo = function()
-	local ctx = vestiviz.newContext();
-	local pipeline = ctx.newPipeline();
-	local pipeline2 = ctx.newPipeline();
-	print(ctx);
-	for k,v in pairs(ctx) do
-		print(k)
-	end
+	local pipeline = vestiviz.newPipeline();
+
 
 	for i=1,1000,1 do
 		pipeline.addDatum(i,

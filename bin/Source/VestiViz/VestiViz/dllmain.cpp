@@ -7,42 +7,6 @@ extern "C" {
     #include "lualib.h"
 }
 
-class PipelineManager{
-    std::vector<std::shared_ptr<VestivizPipeline<double>>> mPipelines;
-    std::mutex mPipelinesMutex;
-public:
-
-    void StopAll() {
-        for (auto it = mPipelines.begin(); it != mPipelines.end(); it++) {
-            if (*it != nullptr) {
-                (*it)->stopPipeline();
-            }
-        }
-    }
-
-    std::size_t AddPipeline(std::shared_ptr<VestivizPipeline<double>>value) {
-        std::lock_guard<std::mutex> lock(mPipelinesMutex);
-        mPipelines.push_back(value);
-        return mPipelines.size() - 1;
-    }
-
-    void RemovePipeline(std::size_t index) {
-        std::lock_guard<std::mutex> lock(mPipelinesMutex);
-        if (index >= mPipelines.size()) return;
-
-        if (mPipelines[index] != nullptr) {
-            mPipelines[index]->stopPipeline();
-        }
-        mPipelines[index] = nullptr;
-    }
-
-    std::shared_ptr<VestivizPipeline<double>> GetPipeline(std::size_t index) {
-        std::lock_guard<std::mutex> lock(mPipelinesMutex);
-        if (index >= mPipelines.size()) return nullptr;
-        return mPipelines[index];
-    }
-};
-
 static bool PopTopVec3(lua_State* L, std::array<double, 3>& output) {
     int toPop = 1;
     bool success = false;
@@ -63,15 +27,9 @@ static bool PopTopVec3(lua_State* L, std::array<double, 3>& output) {
     return success;
 }
 
-static std::shared_ptr<VestivizPipeline<double>> GetPipelineUpVal(lua_State* L) {
-    if (!lua_islightuserdata(L, lua_upvalueindex(1))
-        || !lua_isnumber(L, lua_upvalueindex(2))) return nullptr;
-    auto pm = (PipelineManager*)lua_touserdata(L, lua_upvalueindex(1));
-    auto index = (std::size_t)lua_tonumber(L, lua_upvalueindex(2));
-
-    if (pm == nullptr) return nullptr;
-
-    return pm->GetPipeline(index);
+static VestivizPipeline<double>* GetPipelineUpVal(lua_State* L) {
+    if (!lua_islightuserdata(L, lua_upvalueindex(1))) return nullptr;
+    return (VestivizPipeline<double>*)lua_touserdata(L, lua_upvalueindex(1));
 }
 
 // void F(handle, t, {p,x,y,z})
@@ -142,82 +100,42 @@ static int l_Pipeline_GetDatum(lua_State* L) {
 
 static int l_Pipeline_Delete(lua_State* L) {
 
-    if (!lua_islightuserdata(L, lua_upvalueindex(1))
-        || !lua_isnumber(L, lua_upvalueindex(2))) return 0;
-    auto pm = (PipelineManager*)lua_touserdata(L, lua_upvalueindex(1));
-    auto index = (std::size_t)lua_tonumber(L, lua_upvalueindex(2));
-
-    pm->RemovePipeline(index);
-
-    return 0;
-}
-
-static int l_PipelineManager_Delete(lua_State* L) {
-    
-    if (!lua_islightuserdata(L, lua_upvalueindex(1))) return 0;
-    auto pm = (PipelineManager*)lua_touserdata(L, lua_upvalueindex(1));
-
-    pm->StopAll();
-
-    delete pm;
+    VestivizPipeline<double> *p = GetPipelineUpVal(L);
+    if (p != nullptr) {
+        p->stopPipeline();
+        delete p;
+    }
 
     return 0;
 }
 
-static int l_PipelineManager_NewPipeline(lua_State* L) {
+static int l_Pipeline_New(lua_State* L) {
 
-    if (!lua_islightuserdata(L, lua_upvalueindex(1))) return 0;
-    auto pm = (PipelineManager*)lua_touserdata(L, lua_upvalueindex(1));
-
-    auto pNew = std::make_shared<VestivizPipeline<double>>();
-    std::size_t index = pm->AddPipeline(pNew);
+    auto pNew = new VestivizPipeline<double>();
     pNew->init();
     pNew->startPipeline();
 
     lua_createtable(L, 0, 1);
     lua_newuserdata(L, 1);
     lua_createtable(L, 0, 1);
-    lua_pushlightuserdata(L, pm);
-    lua_pushinteger(L, index);
-    lua_pushcclosure(L, l_Pipeline_Delete, 2);
+    lua_pushlightuserdata(L, pNew);
+    lua_pushcclosure(L, l_Pipeline_Delete, 1);
     lua_setfield(L, -2, "__gc");
     lua_setmetatable(L, -2);
     lua_setfield(L, -2, "destructor");
-    lua_pushlightuserdata(L, pm);
-    lua_pushinteger(L, index);
-    lua_pushcclosure(L, l_Pipeline_AddDatum, 2);
+    lua_pushlightuserdata(L, pNew);
+    lua_pushcclosure(L, l_Pipeline_AddDatum, 1);
     lua_setfield(L, -2, "addDatum");
-    lua_pushlightuserdata(L, pm);
-    lua_pushinteger(L, index);
-    lua_pushcclosure(L, l_Pipeline_GetDatum, 2);
+    lua_pushlightuserdata(L, pNew);
+    lua_pushcclosure(L, l_Pipeline_GetDatum, 1);
     lua_setfield(L, -2, "getDatum");
-
-    return 1;
-}
-
-// Push table onto the stack whose lifecycle is tied to the pipeline manager
-static int l_NewVestivizContext(lua_State* L) {
-
-    void* pm = new PipelineManager();
-
-    lua_createtable(L, 0, 1);
-    lua_newuserdata(L, 1);
-    lua_createtable(L,0,1);
-    lua_pushlightuserdata(L, pm);
-    lua_pushcclosure(L, l_PipelineManager_Delete,1);    
-    lua_setfield(L, -2, "__gc");
-    lua_setmetatable(L, -2);
-    lua_setfield(L, -2, "destructor");
-    lua_pushlightuserdata(L, pm);
-    lua_pushcclosure(L, l_PipelineManager_NewPipeline, 1);
-    lua_setfield(L, -2, "newPipeline");
 
     return 1;
 }
 
 extern "C"  int luaopen_vestiviz(lua_State* L) {
     static const luaL_Reg VestiViz_Index[] = {
-          {"newContext", l_NewVestivizContext},
+          {"newPipeline", l_Pipeline_New},
           {nullptr, nullptr}  /* end */
     };
     luaL_register(L, "vestiviz", VestiViz_Index);
