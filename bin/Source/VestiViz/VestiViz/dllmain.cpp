@@ -78,20 +78,20 @@ static std::shared_ptr<VestivizPipeline<double>> GetPipelineUpVal(lua_State* L) 
 static int l_Pipeline_AddDatum(lua_State* L) {
     auto pipeline = GetPipelineUpVal(L);
     if (pipeline != nullptr) {
-        if (!lua_isnumber(L, 2)) return 0;
-        if (!lua_istable(L, 3)) return 0;
+        if (!lua_isnumber(L, 1)) return 0;
+        if (!lua_istable(L, 2)) return 0;
 
-        double t = lua_tonumber(L, 2);
+        double t = lua_tonumber(L, 1);
 
         std::array<double, 3> p, x, y, z;
 
-        lua_getfield(L, 3, "p");
+        lua_getfield(L, 2, "p");
         if (!PopTopVec3(L, p)) return 0;
-        lua_getfield(L, 3, "x");
+        lua_getfield(L, 2, "x");
         if (!PopTopVec3(L, x)) return 0;
-        lua_getfield(L, 3, "y");
+        lua_getfield(L, 2, "y");
         if (!PopTopVec3(L, y)) return 0;
-        lua_getfield(L, 3, "z");
+        lua_getfield(L, 2, "z");
         if (!PopTopVec3(L, z)) return 0;
 
         pipeline->addDatum(t,
@@ -175,7 +175,7 @@ static int l_PipelineManager_NewPipeline(lua_State* L) {
     pNew->startPipeline();
 
     lua_createtable(L, 0, 1);
-    lua_pushlightuserdata(L, nullptr);
+    lua_newuserdata(L, 1);
     lua_createtable(L, 0, 1);
     lua_pushlightuserdata(L, pm);
     lua_pushinteger(L, index);
@@ -201,7 +201,7 @@ static int l_NewVestivizContext(lua_State* L) {
     void* pm = new PipelineManager();
 
     lua_createtable(L, 0, 1);
-    lua_pushlightuserdata(L, nullptr);
+    lua_newuserdata(L, 1);
     lua_createtable(L,0,1);
     lua_pushlightuserdata(L, pm);
     lua_pushcclosure(L, l_PipelineManager_Delete,1);    

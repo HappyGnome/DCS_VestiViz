@@ -1,12 +1,13 @@
 #include <iostream>
 #include <filesystem>
+#include<thread>
 
 extern "C" {
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
 }
-
+using namespace std::chrono_literals;
 int main()
 {
 	lua_State* L = lua_open();
@@ -24,7 +25,6 @@ int main()
 		std::cout << "Lua file run" << std::endl;
 	}
 	else { std::cout << lua_tostring(L, -1) << std::endl; }
-
 	lua_close(L);
 	return 0;
 }

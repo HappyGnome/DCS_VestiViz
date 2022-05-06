@@ -1,14 +1,18 @@
 
 package.cpath = package.cpath..";"..BinDir.."\\?.dll;"
 
-
 -- LOAD DLL
 --VestiViz.log(_VERSION)
 vestiviz = require('vestiviz')
 
-	ctx = vestiviz.newContext();
-	pipeline = ctx.newPipeline();
-	pipeline2 = ctx.newPipeline();
+foo = function()
+	local ctx = vestiviz.newContext();
+	local pipeline = ctx.newPipeline();
+	local pipeline2 = ctx.newPipeline();
+	print(ctx);
+	for k,v in pairs(ctx) do
+		print(k)
+	end
 
 	for i=1,1000,1 do
 		pipeline.addDatum(i,
@@ -21,3 +25,6 @@ vestiviz = require('vestiviz')
 		foo = pipeline.getDatum();
 		print(i..":"..foo.t);
 	end
+end
+foo();
+print(collectgarbage("collect"));
