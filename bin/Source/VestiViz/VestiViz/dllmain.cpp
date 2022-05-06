@@ -109,13 +109,31 @@ static int l_Pipeline_Delete(lua_State* L) {
     return 0;
 }
 
+static int l_Pipeline_Start(lua_State* L) {
+
+    VestivizPipeline<double>* p = GetPipelineUpVal(L);
+    if (p != nullptr) {
+        p->startPipeline();
+    }
+
+    return 0;
+}
+
+static int l_Pipeline_Stop(lua_State* L) {
+
+    VestivizPipeline<double>* p = GetPipelineUpVal(L);
+    if (p != nullptr) {
+        p->stopPipeline();
+    }
+    return 0;
+}
+
 static int l_Pipeline_New(lua_State* L) {
 
     auto pNew = new VestivizPipeline<double>();
     pNew->init();
-    pNew->startPipeline();
 
-    lua_createtable(L, 0, 1);
+    lua_createtable(L, 0, 5);
     lua_newuserdata(L, 1);
     lua_createtable(L, 0, 1);
     lua_pushlightuserdata(L, pNew);
@@ -129,6 +147,12 @@ static int l_Pipeline_New(lua_State* L) {
     lua_pushlightuserdata(L, pNew);
     lua_pushcclosure(L, l_Pipeline_GetDatum, 1);
     lua_setfield(L, -2, "getDatum");
+    lua_pushlightuserdata(L, pNew);
+    lua_pushcclosure(L, l_Pipeline_Start, 1);
+    lua_setfield(L, -2, "start");
+    lua_pushlightuserdata(L, pNew);
+    lua_pushcclosure(L, l_Pipeline_Stop, 1);
+    lua_setfield(L, -2, "stop");
 
     return 1;
 }

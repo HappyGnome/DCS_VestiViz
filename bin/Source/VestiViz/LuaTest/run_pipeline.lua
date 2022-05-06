@@ -8,7 +8,7 @@ vestiviz = require('vestiviz')
 foo = function()
 	local pipeline = vestiviz.newPipeline();
 
-
+	pipeline.start();
 	for i=1,1000,1 do
 		pipeline.addDatum(i,
 		{p = {x = 1, y= 2, z = 3},
@@ -20,6 +20,7 @@ foo = function()
 		foo = pipeline.getDatum();
 		print(i..":"..foo.t);
 	end
+	pipeline.stop();
 end
 foo();
 print(collectgarbage("collect"));
