@@ -154,6 +154,13 @@ public:
 		return mFilters[std::get<0>(inSpec)]->getInput(std::get<1>(inSpec));
 	}
 
+	std::size_t getLastInput(int offset = 0) {
+		if (mInputIndices.size() <= offset) return nullptr;
+		std::tuple<std::size_t, int>& inSpec = mInputIndices[mInputIndices.size() - offset -1];
+
+		return mFilters[std::get<0>(inSpec)]->getInput(std::get<1>(inSpec));
+	}
+
 	bool setOutput(std::size_t leafFrom, typename IOWrapper::Wrapped&& wrappedInput) {
 		if (leafFrom >= mLeafIndices.size() || mLeafIndices[leafFrom] == LEAF_REJOINED) return false;
 		if(!mFilters[mLeafIndices[leafFrom]]->setOutput(std::move(wrappedInput))) return false;

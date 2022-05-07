@@ -22,6 +22,12 @@
     <Filter Include="Header Files\Postboxes\Wrappers">
       <UniqueIdentifier>{5cc324b0-6cfd-4d71-bf35-c198d934c8dc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\DatumIO">
+      <UniqueIdentifier>{b25f483d-b458-4b9d-8472-3c5a2178e0ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DatumIO\Base">
+      <UniqueIdentifier>{5b794972-e0bb-4887-92e3-e9265ca8387f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VestivizPipeline.h">
@@ -29,6 +35,18 @@
     </ClInclude>
     <ClInclude Include="PIB_Wrapper.h">
       <Filter>Header Files\Postboxes\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="DatumInputPostboxWrapper.h">
+      <Filter>Header Files\DatumIO\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="DatumOutputPostboxWrapper.h">
+      <Filter>Header Files\DatumIO\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="DatumInputPostboxes.h">
+      <Filter>Header Files\DatumIO</Filter>
+    </ClInclude>
+    <ClInclude Include="DatumOutputPostboxes.h">
+      <Filter>Header Files\DatumIO</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

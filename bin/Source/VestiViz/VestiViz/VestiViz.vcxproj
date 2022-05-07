@@ -176,6 +176,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DatumInputPostboxWrapper.h" />
+    <ClInclude Include="DatumOutputPostboxes.h" />
+    <ClInclude Include="DatumOutputPostboxWrapper.h" />
+    <ClInclude Include="DatumInputPostboxes.h" />
     <ClInclude Include="PIB_Wrapper.h" />
     <ClInclude Include="VestivizPipeline.h" />
   </ItemGroup>

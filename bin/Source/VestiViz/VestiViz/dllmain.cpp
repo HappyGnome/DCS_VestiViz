@@ -7,26 +7,6 @@ extern "C" {
     #include "lualib.h"
 }
 
-static bool PopTopVec3(lua_State* L, std::array<double, 3>& output) {
-    int toPop = 1;
-    bool success = false;
-    if (lua_istable(L, -1)) {
-        lua_getfield(L, -1, "x");
-        lua_getfield(L, -2, "y");
-        lua_getfield(L, -3, "z");
-        toPop += 3;
-
-        if (lua_isnumber(L, -1) && lua_isnumber(L, -2) && lua_isnumber(L, -3)) {
-            output[0] = lua_tonumber(L, -3);
-            output[1] = lua_tonumber(L, -2);
-            output[2] = lua_tonumber(L, -1);
-            success = true;
-        }
-    }
-    lua_pop(L, toPop);
-    return success;
-}
-
 static VestivizPipeline<double>* GetPipelineUpVal(lua_State* L) {
     if (!lua_islightuserdata(L, lua_upvalueindex(1))) return nullptr;
     return (VestivizPipeline<double>*)lua_touserdata(L, lua_upvalueindex(1));
@@ -52,11 +32,11 @@ static int l_Pipeline_AddDatum(lua_State* L) {
         lua_getfield(L, 2, "z");
         if (!PopTopVec3(L, z)) return 0;
 
-        pipeline->addDatum(t,
+        /*pipeline->addDatum(t,
             DatumMatrix<double, 3, 3>(x[0], x[1], x[2],
                 y[0], y[1], y[2],
                 z[0], z[1], z[2]),
-            DatumArr<double, double, 3>(p[0], p[1], p[2]));
+            DatumArr<double, double, 3>(p[0], p[1], p[2]));*/
     }
     return 0;
 }
