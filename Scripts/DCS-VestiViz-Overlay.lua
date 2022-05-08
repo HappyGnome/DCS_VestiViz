@@ -385,9 +385,9 @@ VestiViz.doOnSimFrame = function()
 	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputframe1,now, pos3);
 	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputframe2,now, pos3);
 
-	local datum = VestiViz._Pipeline.getDatum(VestiViz._PipelineData.output);
+	local datum = VestiViz._Pipeline.getDatum(VestiViz._PipelineData.outputWOff);
 
-
+	if datum == nil then return end
 	--VestiViz.window.DebugData:setText("Hi:"..bottom.off)
 	VestiViz.window.BottomArrow:setBounds(
 		VestiViz.width * (datum.off.bottom - datum.w.bottom), 
@@ -602,6 +602,8 @@ VestiViz.initPipeline = function()
 							  inputframe1 = frameinput1,
 							  inputframe2 = frameinput2,
 							  outputWOff = output}
+	VestiViz.log("Pipeline configured. Handles:");
+	VestiViz.log(VestiViz._PipelineData);
 
 	local error = VestiViz._Pipeline.popError();
 	while error ~= nil do
