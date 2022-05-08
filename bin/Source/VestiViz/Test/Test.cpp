@@ -161,7 +161,7 @@ void Test5() {
 
 void Test6() {
     auto vp = VestivizPipeline<double>();
-
+/*
     vp.init();
 
     vp.startPipeline();
@@ -172,7 +172,7 @@ void Test6() {
         std::cout << val.datum<<" t: "<< val.t<< std::endl;
         //std::this_thread::sleep_for(30ms);
     }
-
+    */
     vp.stopPipeline();
 }
 
