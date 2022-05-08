@@ -15,7 +15,7 @@ foo = function()
 	print(leaf1..":"..frameinput1);
 	leaf1 = pipeline.staticAddFilterPoint({x = 0, y = -9.81, z = 0},leaf1);
 	leaf1 = pipeline.quickCompressFilterPoint({x = 1, y = 1, z = 1},leaf1);
-	leaf1 = pipeline.expDecayFilterPoint(1.0,leaf1);
+	leaf1 = pipeline.expDecayFilterPoint(100.0,leaf1);
 	leaf1 = pipeline.matMultFilterPointToWOff({
 					0.5, -0.5, 0.0,--T width
 					0.5, 0.0, -0.5,--R width
@@ -33,7 +33,7 @@ foo = function()
 					{1,0}} --z-axis rot
 					,leaf2);
 	leaf2 = pipeline.quickCompressFilterPoint({x = 1, y = 1, z = 1},leaf2);
-	leaf2 = pipeline.expDecayFilterPoint(1.0,leaf2);
+	leaf2 = pipeline.expDecayFilterPoint(100.0,leaf2);
 	leaf2 = pipeline.matMultFilterPointToWOff(
 					{0.0, 0.0, 0.0,--T width
 					0.0, 0.0, 0.0,--R
@@ -46,7 +46,7 @@ foo = function()
 					leaf2);
 	local leaf3 = pipeline.linCombFilterWOff(0.5,0.5,leaf1,leaf2);
 	leaf3 = pipeline.quickCompressFilterWOff({w = {top = 1,right = 1,bottom = 1,left = 1}, off = {top = 1,right = 1,bottom = 1,left = 1}},leaf3);
-	leaf3 = pipeline.convolveOutputFilterWOff({0.25,0.5,0.25},leaf3);
+	leaf3 = pipeline.convolveOutputFilterWOff({0.25,0.5,0.25},leaf3,3);
 	local output = pipeline.makeWOffOutput(leaf3);
 
 	local error = pipeline.popError();
@@ -69,7 +69,7 @@ foo = function()
 	end
 	for i=1,1000,1 do
 		local foo = pipeline.getDatum(output);
-		print(i..":"..foo.t..", "..foo.w.top);
+		print(i..":"..foo.t..", ");
 	end
 	pipeline.stop();
 end

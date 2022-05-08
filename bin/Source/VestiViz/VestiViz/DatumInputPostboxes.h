@@ -105,7 +105,7 @@ static bool ReadTupleArray(lua_State* L, int tblIndex, std::array<std::tuple<std
     if (lua_istable(L, tblIndex)) {
 
         for (std::size_t i = 0; success && i < N; i++) {
-            lua_pushnumber(L, i + 1);
+            lua_pushnumber(L, lua_Number(i + 1));
             lua_gettable(L, getTableIndex);
 
             if (lua_istable(L, -1) ) {

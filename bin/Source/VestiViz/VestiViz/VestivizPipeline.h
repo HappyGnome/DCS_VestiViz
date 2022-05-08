@@ -222,7 +222,7 @@ public:
 		return p->mLuaOutputs[outputIndex]->WriteToLua(L, 1);
 	}
 
-	//args: leaf index
+	//args: leaf index, buffer size
 	// return leafIndex, inputIndex = nil
 	static int l_AccelByRegressionFilterPoint(lua_State* L) {
 		return VestivizPipeline::addBufferedSIF_lua<V3,V3, DIPW_point<S>>(L, PFAB<S, V3, V3>
@@ -289,19 +289,19 @@ public:
 			1);
 	}
 
-	//args:  leaf index
+	//args:  leaf index, buffer size
 	// return leafIndex, inputIndex = nil
 	static int l_SimpleDiffFilterXY(lua_State* L) {
-		return VestivizPipeline::addSimpleSIF_lua<V6, V6, DIPW_xy<S>>(
+		return VestivizPipeline::addBufferedSIF_lua<V6, V6, DIPW_xy<S>>(
 			L,
 			PFAB<S, V6, V6>(new SimpleDiffFilterAction<S, V6, CircBufL>()), 
 			0);
 	}
 
-	//args:  leaf index
+	//args:  leaf index, buffer size
 	// return leafIndex, inputIndex = nil
 	static int l_SimpleDiffFilterPoint(lua_State* L) {
-		return VestivizPipeline::addSimpleSIF_lua<V3, V3, DIPW_point<S>>(
+		return VestivizPipeline::addBufferedSIF_lua<V3, V3, DIPW_point<S>>(
 			L,
 			PFAB<S, V3, V3>(new SimpleDiffFilterAction<S, V3, CircBufL>()), 
 			0);
@@ -344,13 +344,13 @@ public:
 			1);
 	}
 
-	//args: {1 = .., 2= ...,..}, leaf index
+	//args: {1 = .., 2= ...,..}, leaf index, buffer size
 	// return leafIndex, inputIndex = nil
 	static int l_ConvolveOutputFilterWOff(lua_State* L) {
 		std::vector<S> x;
 		if (!ReadVector(L, 1, x)) return 0;
 
-		return  VestivizPipeline::addSimpleSIF_lua<V8, V8, DIPW_woff<S>>(
+		return  VestivizPipeline::addBufferedSIF_lua<V8, V8, DIPW_woff<S>>(
 			L,
 			PFAB<S, V8, V8>(new ConvolveFilterAction<S, V8, CircBufL>(std::move(x))),
 			1);
@@ -395,6 +395,18 @@ public:
 	// Return: output index
 	static int l_MakeWOffOutput(lua_State* L) {
 		return MakeOutput_lua<S, DatumArr<S, S, 8>, DOPW_woff<S>>(L);
+	}
+
+	// Args: leaf index
+	// Return: output index
+	static int l_MakePointOutput(lua_State* L) {
+		return MakeOutput_lua<S, DatumArr<S, S, 3>, DOPW_point<S>>(L);
+	}
+
+	// Args: leaf index
+	// Return: output index
+	static int l_MakeXYOutput(lua_State* L) {
+		return MakeOutput_lua<S, DatumArr<S, S, 6>, DOPW_xy<S>>(L);
 	}
 
 	static int l_Pipeline_Delete(lua_State* L) {
@@ -445,7 +457,7 @@ public:
 
 		auto pNew = new VestivizPipeline<double>();
 
-		lua_createtable(L, 0, 19);
+		lua_createtable(L, 0, 21);
 		lua_newuserdata(L, 1);
 		lua_createtable(L, 0, 1);
 		lua_pushlightuserdata(L, pNew);
@@ -507,6 +519,12 @@ public:
 		lua_pushlightuserdata(L, pNew);
 		lua_pushcclosure(L, l_MakeWOffOutput, 1);
 		lua_setfield(L, -2, "makeWOffOutput");
+		lua_pushlightuserdata(L, pNew);
+		lua_pushcclosure(L, l_MakePointOutput, 1);
+		lua_setfield(L, -2, "makePointOutput");
+		lua_pushlightuserdata(L, pNew);
+		lua_pushcclosure(L, l_MakeXYOutput, 1);
+		lua_setfield(L, -2, "makeXYOutput");
 		return 1;
 	}
 };
