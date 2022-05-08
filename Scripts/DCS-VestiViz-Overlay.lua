@@ -144,14 +144,12 @@ end
 -- LOAD DLL
 --VestiViz.log(_VERSION)
 pcall(function()
-	vestiviz = require('vestiviz')
+	VestiViz._Lib = require('vestiviz')
 	VestiViz.log("Loaded VestiViz.dll")
 end)
 
-if not vestiviz then
+if not VestiViz._Lib then
 	VestiViz.log("Couldn't load VestiViz.dll")
-else
-	VestiViz.log(vestiviz.Foo())
 end
 
 -----------------------------------------------------------
@@ -377,7 +375,45 @@ end
 VestiViz.frames = 0
 VestiViz.doOnSimFrame = function()
 	
-	VestiViz.frames = VestiViz.frames + 1
+	if VestiViz._Pipeline == nil then return end
+
+	local now = base.Export.LoGetModelTime() --getModelTime -- socket.gettime()/1000 -- DCS.getRealTime()
+	local pos3 = base.Export.LoGetCameraPosition()
+
+	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputp,now, pos3);
+	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputxy,now, pos3);
+	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputframe1,now, pos3);
+	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputframe2,now, pos3);
+
+	local datum = VestiViz._Pipeline.getDatum(VestiViz._PipelineData.output);
+
+
+	--VestiViz.window.DebugData:setText("Hi:"..bottom.off)
+	VestiViz.window.BottomArrow:setBounds(
+		VestiViz.width * (datum.off.bottom - datum.w.bottom), 
+		VestiViz.height - VestiViz.config.barWidth, 
+		2 * VestiViz.width * datum.w.bottom,
+		VestiViz.config.barWidth)
+		
+	VestiViz.window.TopArrow:setBounds(
+		VestiViz.width * (datum.off.top - datum.w.top), 
+		0, 
+		2 * VestiViz.width * datum.w.top,  
+		VestiViz.config.barWidth)	
+		
+	VestiViz.window.LeftArrow:setBounds(
+		0, 
+		VestiViz.height * (datum.off.left - datum.w.left), 
+		VestiViz.config.barWidth,  
+		2 * VestiViz.height * datum.w.left)
+		
+	VestiViz.window.RightArrow:setBounds(
+		VestiViz.width-VestiViz.config.barWidth, 
+		VestiViz.height * (datum.off.right - datum.w.right), 
+		VestiViz.config.barWidth,  
+		2 * VestiViz.height * datum.w.right)
+
+	--[[VestiViz.frames = VestiViz.frames + 1
 	if VestiViz.window then
 		local now = base.Export.LoGetModelTime() --getModelTime -- socket.gettime()/1000 -- DCS.getRealTime()
 		local pos3 = base.Export.LoGetCameraPosition()
@@ -511,6 +547,66 @@ VestiViz.doOnSimFrame = function()
 			end
 		end
 
+	end--]]
+end
+
+--------------------------------------------------------------
+VestiViz.initPipeline = function()
+	if VestiViz._Lib == nil then return end
+
+	VestiViz._Pipeline = VestiViz._Lib.newPipeline();
+
+	local frameinput1, frameinput2;
+	local leaf1, input1 = VestiViz._Pipeline.accelByRegressionFilterPoint();
+	leaf1 = VestiViz._Pipeline.staticAddFilterPoint({x = 0, y = 9.81, z = 0},leaf1);
+	leaf1, frameinput1 = VestiViz._Pipeline.dynMatMultFilterPoint(leaf1,nil);
+	print(leaf1..":"..frameinput1);
+	leaf1 = VestiViz._Pipeline.staticAddFilterPoint({x = 0, y = -9.81, z = 0},leaf1);
+	leaf1 = VestiViz._Pipeline.quickCompressFilterPoint({x = 1, y = 1, z = 1},leaf1);
+	leaf1 = VestiViz._Pipeline.expDecayFilterPoint(100.0,leaf1);
+	leaf1 = VestiViz._Pipeline.matMultFilterPointToWOff({
+					0.5, -0.5, 0.0,--T width
+					0.5, 0.0, -0.5,--R width
+					0.5, 0.5, 0.0,--B width
+					0.5, 0.0, 0.5,--L width
+					0.0, 0.0, 1.0, --T somatograv
+					1.0, 0.0, 1.0,--R
+					0.0, 0.0, -1.0,--B
+					1.0, 0.0, -1.0},
+					leaf1);
+	local leaf2, input2 = VestiViz._Pipeline.simpleDiffFilterXY();
+	leaf2, frameinput2 = VestiViz._Pipeline.dynMatMultPickFilterXYtoPoint({
+					{2,1}, --x-axis rot
+					{2,0}, --negative y-axis rot
+					{1,0}} --z-axis rot
+					,leaf2);
+	leaf2 = VestiViz._Pipeline.quickCompressFilterPoint({x = 1, y = 1, z = 1},leaf2);
+	leaf2 = VestiViz._Pipeline.expDecayFilterPoint(100.0,leaf2);
+	leaf2 = VestiViz._Pipeline.matMultFilterPointToWOff(
+					{0.0, 0.0, 0.0,--T width
+					0.0, 0.0, 0.0,--R
+					0.0, 0.0, 0.0,--B
+					0.0, 0.0, 0.0,--L 
+					-1.0, 1.0, 0.0, --T displacement
+					-1.0, 0.0, 1.0,--R
+					1.0, 1.0, 0.0,--B
+					1.0, 0.0, 1.0},
+					leaf2);
+	local leaf3 = VestiViz._Pipeline.linCombFilterWOff(0.5,0.5,leaf1,leaf2);
+	leaf3 = VestiViz._Pipeline.quickCompressFilterWOff({w = {top = 1,right = 1,bottom = 1,left = 1}, off = {top = 1,right = 1,bottom = 1,left = 1}},leaf3);
+	leaf3 = VestiViz._Pipeline.convolveOutputFilterWOff({0.25,0.5,0.25},leaf3,3);
+	local output = VestiViz._Pipeline.makeWOffOutput(leaf3);
+
+	VestiViz._PipelineData = {inputp = input1,
+							  inputxy = input2,
+							  inputframe1 = frameinput1,
+							  inputframe2 = frameinput2,
+							  outputWOff = output}
+
+	local error = VestiViz._Pipeline.popError();
+	while error ~= nil do
+		VestiViz.log(error);
+		error = VestiViz._Pipeline.popError();
 	end
 end
  
@@ -536,11 +632,14 @@ VestiViz.onSimulationStart = function()
 	VestiViz.start = true
 	VestiViz.loadConfiguration()
 	VestiViz.LoadDlg()
+	VestiViz.initPipeline();
+	if VestiViz._Pipeline ~= nil then VestiViz._Pipeline.start() end
 end
 
 VestiViz.onSimulationStop = function()
 	VestiViz.hide = true
-	VestiViz.UpdateShowHideDlg()
+	VestiViz.UpdateShowHideDlg();
+	if VestiViz._Pipeline ~= nil then VestiViz._Pipeline.stop() end
 end
 --------------------------------------------------------------
 -- HOTKEYS
