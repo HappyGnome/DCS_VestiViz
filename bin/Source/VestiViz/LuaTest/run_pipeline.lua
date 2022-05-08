@@ -16,7 +16,8 @@ foo = function()
 	leaf1 = pipeline.staticAddFilterPoint({x = 0, y = -9.81, z = 0},leaf1);
 	leaf1 = pipeline.quickCompressFilterPoint({x = 1, y = 1, z = 1},leaf1);
 	leaf1 = pipeline.expDecayFilterPoint(1.0,leaf1);
-	leaf1 = pipeline.matMultFilterPointToWOff({0.5, -0.5, 0.0,--T width
+	leaf1 = pipeline.matMultFilterPointToWOff({
+					0.5, -0.5, 0.0,--T width
 					0.5, 0.0, -0.5,--R width
 					0.5, 0.5, 0.0,--B width
 					0.5, 0.0, 0.5,--L width
@@ -48,6 +49,11 @@ foo = function()
 	leaf3 = pipeline.convolveOutputFilterWOff({0.25,0.5,0.25},leaf3);
 	local output = pipeline.makeWOffOutput(leaf3);
 
+	local error = pipeline.popError();
+	while error ~= nil do
+		print(error);
+		error = pipeline.popError();
+	end
 
 	pipeline.start();
 	for i=1,1000,1 do

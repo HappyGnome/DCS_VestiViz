@@ -27,6 +27,8 @@ class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 
 	std::vector <std::shared_ptr<DatumOutputPostboxWrapper>> mLuaOutputs;
 
+	std::vector <std::string> mErrors;
+
 	//Static Lua helper methods
 
 	static VestivizPipeline* GetPipelineUpVal(lua_State* L) {
@@ -60,6 +62,8 @@ class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 			}
 			return 1;
 		}
+		p->mErrors.push_back("Failed to add buffered SIF.");
+		return 0;
 	}
 
 	template<typename Tin, typename Tout, typename WrappedTPostbox>
@@ -83,6 +87,9 @@ class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 			}
 			return 1;
 		}
+
+		p->mErrors.push_back("Failed to add simple SIF.");
+		return 0;
 	}
 
 	template<typename Tin1, typename Tin2, typename Tout, typename WrappedT1Postbox, typename WrappedT2Postbox>
@@ -120,6 +127,7 @@ class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 			}
 			return pushed;
 		}
+		p->mErrors.push_back("Failed to add simple DIF.");
 		return 0;
 	}
 
@@ -147,6 +155,8 @@ class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 			}
 			return 1;
 		}
+		p->mErrors.push_back("Failed to add buffered OutF.");
+		return 0;
 	}
 	// Args: leaf index
 	// Return: output index
@@ -155,11 +165,17 @@ class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 
 		VestivizPipeline* p = GetPipelineUpVal(L);
 		if (p == nullptr) return 0;
-		if (!lua_isnumber(L, 1)) return 0;
+		if (!lua_isnumber(L, 1)) {
+			p->mErrors.push_back("Missing leaf index for output.");
+			return 0;
+		}
 		int leafIndex = lua_tonumber(L, 1);
 
 		auto sharedOutputPBox = std::shared_ptr<SimplePostbox<TimedDatum<S, Tout>>>(new SimplePostbox<TimedDatum<S, Tout>>());
-		if (!p->setOutput((std::size_t)leafIndex, PIB_Wrapper::Wrap<TimedDatum<S, Tout>>(sharedOutputPBox))) return 0;
+		if (!p->setOutput((std::size_t)leafIndex, PIB_Wrapper::Wrap<TimedDatum<S, Tout>>(sharedOutputPBox))) {
+			p->mErrors.push_back("Failed to connect output.");
+			return 0;
+		}
 
 		p->mLuaOutputs.push_back(std::shared_ptr<DatumOutputPostboxWrapper>(new WrappedTPostbox(sharedOutputPBox)));
 		lua_pushnumber(L, p->mLuaOutputs.size() - 1);
@@ -411,11 +427,25 @@ public:
 		return 0;
 	}
 
+	static int l_Pipeline_PopError(lua_State* L) {
+
+		VestivizPipeline<double>* p = GetPipelineUpVal(L);
+		if (p != nullptr) {
+			if (p->mErrors.empty()) return 0;
+			std::string msg = p->mErrors.back();
+			p->mErrors.pop_back();
+			lua_pushstring(L, msg.c_str());
+			return 1;
+		}
+		return 0;
+	}
+
+
 	static int l_Pipeline_New(lua_State* L) {
 
 		auto pNew = new VestivizPipeline<double>();
 
-		lua_createtable(L, 0, 18);
+		lua_createtable(L, 0, 19);
 		lua_newuserdata(L, 1);
 		lua_createtable(L, 0, 1);
 		lua_pushlightuserdata(L, pNew);
@@ -424,11 +454,14 @@ public:
 		lua_setmetatable(L, -2);
 		lua_setfield(L, -2, "destructor");
 		lua_pushlightuserdata(L, pNew);
+		lua_pushcclosure(L, l_Pipeline_GetDatum, 1);
+		lua_setfield(L, -2, "getDatum");
+		lua_pushlightuserdata(L, pNew);
 		lua_pushcclosure(L, l_Pipeline_AddDatum, 1);
 		lua_setfield(L, -2, "addDatum");
 		lua_pushlightuserdata(L, pNew);
-		lua_pushcclosure(L, l_Pipeline_GetDatum, 1);
-		lua_setfield(L, -2, "getDatum");
+		lua_pushcclosure(L, l_Pipeline_PopError, 1);
+		lua_setfield(L, -2, "popError");
 		lua_pushlightuserdata(L, pNew);
 		lua_pushcclosure(L, l_Pipeline_Start, 1);
 		lua_setfield(L, -2, "start");
