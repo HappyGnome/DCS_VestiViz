@@ -38,7 +38,12 @@ protected:
 	}
 
 public:
-	explicit SingleInputFilterBase(const std::shared_ptr<PostboxBase<Tin, L, LAlloc>>& input, std::unique_ptr <FilterActionBase<Tin,Tout, L, LAlloc>>&& action):mInput(input), mFilterAction(std::move(action)) {};
+	explicit SingleInputFilterBase(const std::shared_ptr<PostboxBase<Tin, L, LAlloc>>& input, 
+		std::unique_ptr <FilterActionBase<Tin,Tout, L, LAlloc>>&& action,
+		std::shared_ptr<ErrorStack> log = nullptr)
+		:	AsyncFilter<IOWrapper>(log),
+			mInput(input), 
+			mFilterAction(std::move(action)) {};
 
 	bool setOutput(typename IOWrapper::Wrapped&& wrappedInput) final{
 		auto unwrapped = IOWrapper::template Unwrap<Tout>(std::move(wrappedInput));

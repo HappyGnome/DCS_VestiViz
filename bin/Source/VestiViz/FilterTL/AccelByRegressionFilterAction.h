@@ -19,7 +19,6 @@ class AccelByRegressionFilterAction : public FilterActionBase<TimedDatum<S, T>, 
 
 public:
 	TimedDatum<S, T> actOn(const L<TimedDatum<S, T>, LAlloc>& data) override {
-
 		std::size_t n = data.size();
 		TimedDatum<S, T> ret = TimedDatum<S, T>::zero();
 		std::vector<S> taus(n, 0);

@@ -9,14 +9,34 @@
 #include <condition_variable>
 
 #include "PostboxInputBase.h"
+#include "ErrorStack.h"
 
 template<typename IOWrapper>
 class AsyncFilter {
 
-	std::thread mWorkerThread;
+	std::shared_ptr<ErrorStack> mLog;
+protected:
 
+	void log(const std::exception& e) {
+		if (mLog != nullptr) {
+			mLog->push_exception(e);
+		}
+	}
+	void log(const std::string& msg) {
+		if (mLog != nullptr) {
+			mLog->push_message(msg);
+		}
+	}
+private:
+
+	std::thread mWorkerThread;
 	void workerFunc() {
-		while (process()){}
+		try {
+			while (process()) {}
+		}
+		catch (const std::exception& e) {
+			log(e);
+		}
 	}
 protected:
 
@@ -28,6 +48,8 @@ protected:
 	 */
 	virtual void cancel() = 0;
 public:
+
+	explicit AsyncFilter(std::shared_ptr<ErrorStack> log = nullptr) :mLog(log) {};
 
 	virtual ~AsyncFilter() = default;
 

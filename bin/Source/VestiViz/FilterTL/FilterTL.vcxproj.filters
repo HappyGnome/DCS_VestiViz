@@ -34,6 +34,12 @@
     <Filter Include="Header Files\Pipelines">
       <UniqueIdentifier>{4002e6db-6f2b-44b0-adfe-b91fbc66fb06}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Logging">
+      <UniqueIdentifier>{c2e31273-5b08-4e18-99da-f590ce157545}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Logging">
+      <UniqueIdentifier>{6735280e-7bfd-4e12-b92f-f0ae8107136d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CircPostbox.h">
@@ -120,5 +126,13 @@
     <ClInclude Include="StatAddFilterAction.h">
       <Filter>Header Files\FilterActions</Filter>
     </ClInclude>
+    <ClInclude Include="ErrorStack.h">
+      <Filter>Header Files\Logging</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ErrorStack.cpp">
+      <Filter>Source Files\Logging</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

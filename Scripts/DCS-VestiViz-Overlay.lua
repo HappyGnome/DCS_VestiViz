@@ -388,28 +388,37 @@ VestiViz.doOnSimFrame = function()
 	local datum = VestiViz._Pipeline.getDatum(VestiViz._PipelineData.outputWOff);
 
 	if datum == nil then return end
+
+	for k,v in pairs(datum.off) do
+		datum.off[k] = VestiViz.config.offlim * v
+	end
+
+	for k,v in pairs(datum.w) do
+		datum.w[k] = VestiViz.wcen + VestiViz.wlim* v
+	end
+
 	--VestiViz.window.DebugData:setText("Hi:"..bottom.off)
 	VestiViz.window.BottomArrow:setBounds(
-		VestiViz.width * (datum.off.bottom - datum.w.bottom), 
+		VestiViz.width * (0.5 + datum.off.bottom - datum.w.bottom), 
 		VestiViz.height - VestiViz.config.barWidth, 
 		2 * VestiViz.width * datum.w.bottom,
 		VestiViz.config.barWidth)
 		
 	VestiViz.window.TopArrow:setBounds(
-		VestiViz.width * (datum.off.top - datum.w.top), 
+		VestiViz.width * (0.5 + datum.off.top - datum.w.top), 
 		0, 
 		2 * VestiViz.width * datum.w.top,  
 		VestiViz.config.barWidth)	
 		
 	VestiViz.window.LeftArrow:setBounds(
 		0, 
-		VestiViz.height * (datum.off.left - datum.w.left), 
+		VestiViz.height * (0.5 + datum.off.left - datum.w.left), 
 		VestiViz.config.barWidth,  
 		2 * VestiViz.height * datum.w.left)
 		
 	VestiViz.window.RightArrow:setBounds(
 		VestiViz.width-VestiViz.config.barWidth, 
-		VestiViz.height * (datum.off.right - datum.w.right), 
+		VestiViz.height * (0.5 + datum.off.right - datum.w.right), 
 		VestiViz.config.barWidth,  
 		2 * VestiViz.height * datum.w.right)
 
@@ -562,8 +571,8 @@ VestiViz.initPipeline = function()
 	leaf1, frameinput1 = VestiViz._Pipeline.dynMatMultFilterPoint(leaf1,nil);
 	print(leaf1..":"..frameinput1);
 	leaf1 = VestiViz._Pipeline.staticAddFilterPoint({x = 0, y = -9.81, z = 0},leaf1);
-	leaf1 = VestiViz._Pipeline.quickCompressFilterPoint({x = 1, y = 1, z = 1},leaf1);
-	leaf1 = VestiViz._Pipeline.expDecayFilterPoint(100.0,leaf1);
+	leaf1 = VestiViz._Pipeline.quickCompressFilterPoint({x = 5, y = 20, z = 5},leaf1);
+	leaf1 = VestiViz._Pipeline.expDecayFilterPoint(0.2,leaf1);
 	leaf1 = VestiViz._Pipeline.matMultFilterPointToWOff({
 					0.5, -0.5, 0.0,--T width
 					0.5, 0.0, -0.5,--R width
@@ -580,8 +589,8 @@ VestiViz.initPipeline = function()
 					{2,0}, --negative y-axis rot
 					{1,0}} --z-axis rot
 					,leaf2);
-	leaf2 = VestiViz._Pipeline.quickCompressFilterPoint({x = 1, y = 1, z = 1},leaf2);
-	leaf2 = VestiViz._Pipeline.expDecayFilterPoint(100.0,leaf2);
+	leaf2 = VestiViz._Pipeline.quickCompressFilterPoint({x = 0.5, y = 0.5, z = 0.5},leaf2);
+	leaf2 = VestiViz._Pipeline.expDecayFilterPoint(0.2,leaf2);
 	leaf2 = VestiViz._Pipeline.matMultFilterPointToWOff(
 					{0.0, 0.0, 0.0,--T width
 					0.0, 0.0, 0.0,--R
@@ -641,7 +650,11 @@ end
 VestiViz.onSimulationStop = function()
 	VestiViz.hide = true
 	VestiViz.UpdateShowHideDlg();
-	if VestiViz._Pipeline ~= nil then VestiViz._Pipeline.stop() end
+
+	if VestiViz._Pipeline ~= nil then 
+		VestiViz.log("Stopping pipeline")
+		VestiViz._Pipeline.stop() 
+	end
 end
 --------------------------------------------------------------
 -- HOTKEYS

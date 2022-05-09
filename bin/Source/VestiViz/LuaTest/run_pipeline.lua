@@ -54,9 +54,9 @@ foo = function()
 		print(error);
 		error = pipeline.popError();
 	end
-
+	print("Starting");
 	pipeline.start();
-	for i=1,1000,1 do
+	for i=1,10,1 do
 		pipeline.addDatum(input1,i, {p = {x = 1, y= 2, z = 3}});
 		pipeline.addDatum(input2,i, {x = {x = 1.1, y= 2.1, z = 3.1},
 																 y = {x = 1.2, y= 2.2, z = 3.2}});
@@ -66,11 +66,24 @@ foo = function()
 		pipeline.addDatum(frameinput2,i, {x = {x = 1.1, y= 2.1, z = 3.1},
 																			y = {x = 1.2, y= 2.2, z = 3.2},
 																			z = {x = 1.3, y= 2.3, z = 3.3}});
+
+		--print(i.." add");
 	end
-	for i=1,1000,1 do
-		local foo = pipeline.getDatum(output);
-		print(i..":"..foo.t..", ");
+	--if (pcall( function()
+		for i=1,1000,1 do
+			local foo = pipeline.getDatum(output);
+			print(i..":"..foo.t..", ");
+			--print(i);
+		end
+	--end)~= true ) then print ("error") end
+
+	local error = pipeline.popError();
+	while error ~= nil do
+		print(error);
+		error = pipeline.popError();
 	end
+
+
 	pipeline.stop();
 end
 foo();

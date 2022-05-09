@@ -20,6 +20,7 @@ class PipelineBase {
 	std::vector< std::shared_ptr<AsyncFilter<IOWrapper>>> mFilters;
 	std::vector< std::size_t > mLeafIndices;// index into mFilters
 	std::vector< std::tuple<std::size_t, int> > mInputIndices; // (index into mFilters, input number)
+	std::shared_ptr<ErrorStack> mErrors;
 
 	bool TryAddSIF(std::size_t fromLeaf, std::shared_ptr<AsyncFilter<IOWrapper>> newFilter, std::size_t& outputLeaf) {
 		if (fromLeaf == NEW_INPUT) {
@@ -70,6 +71,8 @@ public:
 	static const std::size_t NEW_INPUT = -1;
 	static const std::size_t LEAF_REJOINED = -1;
 
+	explicit PipelineBase(std::shared_ptr<ErrorStack> log = nullptr) :mErrors(log) {}
+
 	void startPipeline() {
 		for (auto it = mFilters.begin(); it != mFilters.end(); it++)
 		{
@@ -96,7 +99,7 @@ public:
 		std::size_t& outputLeaf) {
 
 		auto newFilter = std::shared_ptr<AsyncFilter<IOWrapper>>(new SingleInputFilterBase<TimedDatum<S, Tin>, TimedDatum<S, Tout>, IOWrapper, CircBufL>
-			(std::make_shared<CircPostbox<TimedDatum<S, Tin>>>(bufferSize), std::move(action)));
+			(std::make_shared<CircPostbox<TimedDatum<S, Tin>>>(bufferSize), std::move(action), mErrors));
 
 		return TryAddSIF(fromLeaf, newFilter, outputLeaf);
 	}
@@ -107,7 +110,7 @@ public:
 		std::size_t& outputLeaf) {
 
 		auto newFilter = std::shared_ptr<AsyncFilter<IOWrapper>>(new SingleInputFilterBase<TimedDatum<S, Tin>, TimedDatum<S, Tout>, IOWrapper, CircBufL>
-			(std::make_shared<SimplePostbox<TimedDatum<S, Tin>>>(), std::move(action)));
+			(std::make_shared<SimplePostbox<TimedDatum<S, Tin>>>(), std::move(action), mErrors));
 
 		return TryAddSIF(fromLeaf, newFilter, outputLeaf);
 	}
@@ -126,7 +129,8 @@ public:
 			CircBufL>
 			(std::make_shared<SimplePostbox<TimedDatum<S, Tin1>>>(),
 			 std::make_shared<SimplePostbox<TimedDatum<S, Tin2>>>(), 
-			 std::move(action)));
+			 std::move(action), 
+			 mErrors));
 
 		return TryAddDIF(fromLeaf1, fromLeaf2, newFilter, outputLeaf);
 	}
@@ -142,7 +146,7 @@ public:
 			TimedDatum<S, Tout>,
 			IOWrapper, 
 			CircBufL>
-			(std::make_shared<CircPostbox<TimedDatum<S, Tin>>>(bufferSize), std::move(action)));
+			(std::make_shared<CircPostbox<TimedDatum<S, Tin>>>(bufferSize), std::move(action), mErrors));
 
 		return TryAddSIF(fromLeaf, newFilter, outputLeaf);
 	}
