@@ -29,11 +29,12 @@ public:
             if (!mWrapped->empty()) val = *(mWrapped->output().cbegin());
         }
 
-        lua_newtable(L);
+        luaL_checkstack(L, 3, "Lua stack space insufficient");
+        lua_createtable(L,0,3);
         lua_pushnumber(L, val.t);
         lua_setfield(L, -2, "t");
 
-        lua_newtable(L);
+        lua_createtable(L, 0, 4);
         lua_pushnumber(L, val.datum[0]);
         lua_setfield(L, -2, "top");
         lua_pushnumber(L, val.datum[1]);
@@ -44,7 +45,7 @@ public:
         lua_setfield(L, -2, "left");
         lua_setfield(L, -2, "w");
 
-        lua_newtable(L);
+        lua_createtable(L, 0, 4);
         lua_pushnumber(L, val.datum[4]);
         lua_setfield(L, -2, "top");
         lua_pushnumber(L, val.datum[5]);
@@ -85,7 +86,6 @@ public:
         lua_pushnumber(L, val.datum[2]);
         lua_setfield(L, -2, "z");
         lua_setfield(L, -2, "p");
-
         return 1;
     }
 };
@@ -126,7 +126,6 @@ public:
         lua_pushnumber(L, val.datum[5]);
         lua_setfield(L, -2, "z");
         lua_setfield(L, -2, "y");
-
         return 1;
     }
 };

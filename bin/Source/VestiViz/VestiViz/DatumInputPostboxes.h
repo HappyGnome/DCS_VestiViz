@@ -64,7 +64,6 @@ static bool ReadArray(lua_State* L, int tblIndex, std::array<double, N>& output,
     }
     else success = false;
     if (pop1) lua_pop(L, 1);
-
     return success;
 }
 
@@ -73,7 +72,6 @@ static bool ReadVector(lua_State* L, int tblIndex, std::vector<double>& output, 
 
     int getTableIndex = tblIndex;
     if (tblIndex < 0) getTableIndex--;
-
     if (lua_istable(L, tblIndex)) {
         int i = 0;
         output.clear();
@@ -91,7 +89,6 @@ static bool ReadVector(lua_State* L, int tblIndex, std::vector<double>& output, 
     }
     else success = false;
     if (pop1) lua_pop(L, 1);
-
     return success;
 }
 
@@ -101,7 +98,6 @@ static bool ReadTupleArray(lua_State* L, int tblIndex, std::array<std::tuple<std
 
     int getTableIndex = tblIndex;
     if (tblIndex < 0) getTableIndex--;
-
     if (lua_istable(L, tblIndex)) {
 
         for (std::size_t i = 0; success && i < N; i++) {
@@ -125,7 +121,6 @@ static bool ReadTupleArray(lua_State* L, int tblIndex, std::array<std::tuple<std
     }
     else success = false;
     if (pop1) lua_pop(L, 1);
-
     return success;
 }
 
@@ -137,7 +132,7 @@ static bool PopTopTRBL(lua_State* L, std::array<double, 4>& output) {
         lua_getfield(L, -2, "right");
         lua_getfield(L, -3, "bottom");
         lua_getfield(L, -4, "left");
-        toPop += 3;
+        toPop += 4;
 
         if (lua_isnumber(L, -1) && lua_isnumber(L, -2) && lua_isnumber(L, -3) && lua_isnumber(L, -4)) {
             output[0] = lua_tonumber(L, -4);
@@ -155,18 +150,18 @@ template<typename S>
 static bool ReadWOff(lua_State* L, std::size_t stackOffset, DatumArr<S, S, 8>& output, bool pop1 = false) {
     std::array<double, 4> w;
     std::array<double, 4> off;
-
     lua_getfield(L, stackOffset, "w");
     bool success = PopTopTRBL(L, w);
-    lua_getfield(L, stackOffset, "off");
-    success = success && PopTopTRBL(L, off);
+    if (success) {
+        lua_getfield(L, stackOffset, "off");
+        success = PopTopTRBL(L, off);
+    }
 
     for (int i = 0; i < 4; i++) {
         output[i] = w[i];
         output[i+4] = off[i];
     }  
     if (pop1) lua_pop(L, 1);
-
     return success;
 }
 
@@ -175,7 +170,7 @@ class DIPW_point : public DatumInputPostboxWrapper {
 	std::shared_ptr<PostboxInputBase<TimedDatum<S, DatumArr<S, S, 3>>>> mWrapped;
 public:
 	explicit DIPW_point(std::shared_ptr<PostboxInputBase<TimedDatum<S, DatumArr<S, S, 3>>>> toWrap) :mWrapped(toWrap) {};
-
+    
 	int TryReadFromLua(lua_State* L, int stackOffset) final {
 		if (mWrapped == nullptr)return 0;
 
@@ -192,7 +187,7 @@ public:
         
         value.datum = DatumArr<S, S, 3>(std::move(p));
 
-         mWrapped->addDatum(value);
+        mWrapped->addDatum(std::move(value));
          return 0;
 	}
 };
@@ -220,8 +215,8 @@ public:
 
         value.datum = DatumArr<S, S, 6>(x[0], x[1], x[2],y[0], y[1], y[2]);
 
-        mWrapped->addDatum(value);
-
+        
+        mWrapped->addDatum(std::move(value));
         return 0;
     }
 };
@@ -234,7 +229,6 @@ public:
 
     int TryReadFromLua(lua_State* L, int stackOffset) final {
         if (mWrapped == nullptr)return 0;
-
         if (!lua_isnumber(L, stackOffset + 1)) return 0;
         if (!lua_istable(L, stackOffset + 2)) return 0;
         TimedDatum<S, DatumMatrix<S, 3, 3>> value;
@@ -254,8 +248,7 @@ public:
             y[0], y[1], y[2],
             z[0], z[1], z[2]);
 
-        mWrapped->addDatum(value);
-
+        mWrapped->addDatum(std::move(value));
         return 0;
     }
 };
@@ -268,7 +261,6 @@ public:
 
     int TryReadFromLua(lua_State* L, int stackOffset) final {
         if (mWrapped == nullptr)return 0;
-
         TimedDatum<S, DatumArr<S, S, 8>> value;
 
         if (!lua_isnumber(L, stackOffset + 1)) return 0;
@@ -280,7 +272,6 @@ public:
         if (ReadWOff(L, stackOffset+2, value.datum)) {
             mWrapped->addDatum(value);
         }
-
         return 0;
     }
 };

@@ -16,3 +16,5 @@ bin/Source/VestiViz/LuaTest/x64
 bin/Source/VestiViz/FilterTL/x64
 bin/Source/VestiViz/FilterTL/Release
 bin/Source/VestiViz/FilterTL/*.user
+/bin/Source/Lua515/lib/Debug/lua5.1.dll
+/bin/Source/Lua515/lib/Release/lua5.1.dll

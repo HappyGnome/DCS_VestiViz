@@ -43,7 +43,7 @@ class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 
 	static VestivizPipeline* GetPipelineUpVal(lua_State* L) {
 		if (!lua_islightuserdata(L, lua_upvalueindex(1))) return nullptr;
-		return (VestivizPipeline*)lua_touserdata(L, lua_upvalueindex(1));
+		return (VestivizPipeline*)lua_topointer(L, lua_upvalueindex(1));
 	}
 
 
@@ -54,11 +54,13 @@ class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 		if (p == nullptr) return 0;
 
 		std::size_t leaf = NEW_INPUT;
-		if (lua_isnumber(L, stackOffset + 1)) leaf = lua_tointeger(L, stackOffset + 1);
+		if (lua_isnumber(L, stackOffset + 1)) leaf 
+			= lua_tointeger(L, stackOffset + 1);
 		bool newInput = leaf == NEW_INPUT;
 
 		std::size_t windowSize = 8;
-		if (lua_isnumber(L, stackOffset + 2)) windowSize = lua_tointeger(L, stackOffset + 2);
+		if (lua_isnumber(L, stackOffset + 2)) windowSize 
+			= lua_tointeger(L, stackOffset + 2);
 
 		if (p->addBufferedSIF(leaf, windowSize,
 			PFAB<S, Tin, Tout>(std::move(action)), leaf)) {
@@ -93,12 +95,15 @@ class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 				auto input = PIB_Wrapper::Unwrap<TimedDatum<S, Tin>>(p -> getLastInput());
 				p->mLuaInputs.push_back(std::shared_ptr<DatumInputPostboxWrapper>(new WrappedTPostbox(input)));
 				lua_pushnumber(L, p->mLuaInputs.size() - 1);
+
 				return 2;
 			}
+
 			return 1;
 		}
 
 		VestivizPipeline::log(p, "Failed to add simple SIF.");
+
 		return 0;
 	}
 
@@ -258,7 +263,6 @@ public:
 		try{
 			std::array<S, 3> x;
 			if (!ReadVec3(L, 1, x)) return 0;
-
 			return VestivizPipeline::addSimpleSIF_lua<V3, V3, DIPW_point<S>>(
 				L, 
 				PFAB<S, V3, V3>(new StatAddFilterAction<S, V3, CircBufL>(V3(x[0], x[1], x[2]))), 
@@ -319,7 +323,6 @@ public:
 		try{
 			std::array<S, 24> arr;
 			if (!ReadArray<24>(L,1, arr)) return 0;
-
 			M8x3 m = M8x3(arr);
 
 			return VestivizPipeline::addSimpleSIF_lua<V3, V8, DIPW_point<S>>(
@@ -363,7 +366,6 @@ public:
 		try{
 			std::array<std::tuple<std::size_t, std::size_t>, 3> m;
 			if (!ReadTupleArray<3>(L, 1, m)) return 0;
-
 			return VestivizPipeline::addSimpleDIF_lua<V6, M3, V3, DIPW_xy<S>, DIPW_frame<S>>(
 				L,
 				PDFAB<S, V6, M3, V3>(new DynMatMultPickFilterAction<S, S, 3, 3, 6, 3, CircBufL, CircBufL>(std::move(m))),
@@ -396,7 +398,6 @@ public:
 		try {
 			V8 x;
 			if (!ReadWOff(L, 1, x)) return 0;
-
 			return VestivizPipeline::addSimpleSIF_lua<V8, V8, DIPW_woff<S>>(
 				L,
 				PFAB<S, V8, V8>(new QuickCompressFilterAction<S, V8, CircBufL>(x)),
@@ -412,7 +413,6 @@ public:
 		try{
 			std::vector<S> x;
 			if (!ReadVector(L, 1, x)) return 0;
-
 			return  VestivizPipeline::addBufferedSIF_lua<V8, V8, DIPW_woff<S>>(
 				L,
 				PFAB<S, V8, V8>(new ConvolveFilterAction<S, V8, CircBufL>(std::move(x))),

@@ -49,14 +49,16 @@ foo = function()
 	leaf3 = pipeline.convolveOutputFilterWOff({0.25,0.5,0.25},leaf3,3);
 	local output = pipeline.makeWOffOutput(leaf3);
 
+	--local output = pipeline.makePointOutput(leaf1);
+
 	local error = pipeline.popError();
 	while error ~= nil do
 		print(error);
 		error = pipeline.popError();
 	end
-	print("Starting");
+	print("Starting "..input1.." "..input2.." "..frameinput1.." "..frameinput2);
 	pipeline.start();
-	for i=1,10,1 do
+	for i=1,1,1 do
 		pipeline.addDatum(input1,i, {p = {x = 1, y= 2, z = 3}});
 		pipeline.addDatum(input2,i, {x = {x = 1.1, y= 2.1, z = 3.1},
 																 y = {x = 1.2, y= 2.2, z = 3.2}});
@@ -66,13 +68,13 @@ foo = function()
 		pipeline.addDatum(frameinput2,i, {x = {x = 1.1, y= 2.1, z = 3.1},
 																			y = {x = 1.2, y= 2.2, z = 3.2},
 																			z = {x = 1.3, y= 2.3, z = 3.3}});
-
 		--print(i.." add");
 	end
+	--print("slow");
 	--if (pcall( function()
-		for i=1,1000,1 do
+		for i=1,59,1 do
 			local foo = pipeline.getDatum(output);
-			print(i..":"..foo.t..", ");
+			print(i..":"..foo.t..", "..foo.w.top);
 			--print(i);
 		end
 	--end)~= true ) then print ("error") end
