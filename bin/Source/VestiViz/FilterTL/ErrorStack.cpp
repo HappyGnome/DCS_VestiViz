@@ -1,5 +1,7 @@
 #include "ErrorStack.h"
 
+ErrorStack::ErrorStack(std::size_t size) :mMessages(size) {};
+
 bool ErrorStack::pop_message(std::string& message) {
 	std::lock_guard<std::mutex> guard(mMessagesMutex);
 	if (mMessages.empty())return false;

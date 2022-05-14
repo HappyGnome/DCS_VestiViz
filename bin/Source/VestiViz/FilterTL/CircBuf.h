@@ -35,6 +35,14 @@ public:
 		trim();
 	}
 
+	void pop_back() {
+		mBuf.pop_back();
+	}
+
+	T back() {
+		return mBuf.back();
+	}
+
 	void collectfrom(CircBufL<T, LAlloc> &other) {
 		other.trim(mCapacity);
 

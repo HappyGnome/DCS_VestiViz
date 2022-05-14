@@ -530,7 +530,7 @@ public:
 
 	static int l_Pipeline_New(lua_State* L) {
 
-		std::shared_ptr<ErrorStack> log(new ErrorStack());
+		std::shared_ptr<ErrorStack> log(new ErrorStack(5));
 
 		auto pNew = new VestivizPipeline<double>(log);
 

@@ -63,6 +63,8 @@ VestiViz = {
 	start = true,
 	colourInd = 1,
 	everyNFrames = 2,
+	framesPerErrorFlush = 600,
+	framesSinceErrorFlush = 0,
 	logFile = io.open(lfs.writedir()..[[Logs\DCS-VestiViz-Overlay.log]], "w")
 }
 VestiViz.wlim = (VestiViz.config.maxw - VestiViz.config.minw)/2 
@@ -422,141 +424,11 @@ VestiViz.doOnSimFrame = function()
 		VestiViz.config.barWidth,  
 		2 * VestiViz.height * datum.w.right)
 
-	--[[VestiViz.frames = VestiViz.frames + 1
-	if VestiViz.window then
-		local now = base.Export.LoGetModelTime() --getModelTime -- socket.gettime()/1000 -- DCS.getRealTime()
-		local pos3 = base.Export.LoGetCameraPosition()
-		local here = pos3.p
-		local X = pos3.x
-		local Y = pos3.y
-		local Z = pos3.z
-		local vel = VestiViz.prev.vel
-	
-		if VestiViz.start then
-			VestiViz.prev.time = now
-			VestiViz.prev.vel = vel
-			VestiViz.prev.posCirc = {_v= {[1] = {p = here, t= now, x = {x=0,y=0,z=0}, y= {x=0,y=0,z=0},z = {x=0,y=0,z=0}}}, _at = 1, _maxSize = 8}
-			VestiViz.start = false
-			VestiViz.prev.dt = 0.01
-			VestiViz.periodHint = 0
-		else
-			local dt = now - VestiViz.prev.time;
-		
-			if dt > VestiViz.minDt and VestiViz.frames >= VestiViz.everyNFrames then
-				local prev = VestiViz.getCirc(VestiViz.prev.posCirc,0)
-				VestiViz.setNextCirc(VestiViz.prev.posCirc,{p = here, t = now, x = X, y = Y, z = Z})
-
-				local worldAcc = VestiViz.bestFitAccel(VestiViz.prev.posCirc._v).acc--
-				worldAcc.y = worldAcc.y + 9.81
-				
-				local decayFactor = math.pow(0.5,dt/VestiViz.config.halflife)
-
-				local rawYAcc = VestiViz.vecDot(worldAcc,Y) - 9.81
-
-				if rawYAcc < 0 then
-					rawYAcc = rawYAcc * VestiViz.config.acclims.mY
-				end
-				
-				VestiViz.addToTail(VestiViz.prev.acc,
-									VestiViz.compcompress(
-										{
-											x = VestiViz.vecDot(worldAcc,X),
-									 		y = rawYAcc,
-									 		z = VestiViz.vecDot(worldAcc,Z)
-										},
-										VestiViz.config.acclims),
-									decayFactor
-								)
-								 
-				local viewAcc = VestiViz.scalarMult(VestiViz.prev.acc,VestiViz.config.accFactor)
-				local somatoGrav = VestiViz.scalarMult(VestiViz.prev.acc,VestiViz.config.somatogravFactor)
-
-				local dX = VestiViz.vecDiff(prev.x,X,dt)
-
-				local dY = VestiViz.vecDiff(prev.y,Y,dt)
-				
-				VestiViz.addToTail(VestiViz.prev.rot,
-									VestiViz.compcompress(
-										{
-											x = VestiViz.vecDot(Z,dY),
-											y = -VestiViz.vecDot(Z,dX),
-											z = VestiViz.vecDot(Y,dX)
-										},
-										VestiViz.config.rotlims),
-									decayFactor
-								)
-								
-				local viewRot = VestiViz.scalarMult(VestiViz.prev.rot,VestiViz.config.rotFactor)
-					
-				local bars = {
-					bottom = VestiViz.normalizeBar({
-						off = viewRot.x + viewRot.y - somatoGrav.z,
-						w = viewAcc.y - viewAcc.x
-					}),							  
-					top = VestiViz.normalizeBar({
-						off = -viewRot.x + viewRot.y + somatoGrav.z,
-						w = -viewAcc.y - viewAcc.x
-					}),							  
-					left = VestiViz.normalizeBar({
-						off = viewRot.x + viewRot.z + (somatoGrav.x - somatoGrav.z),
-						w = viewAcc.z - viewAcc.x
-					}),					
-					right = VestiViz.normalizeBar({
-						off = - viewRot.x + viewRot.z + (somatoGrav.z + somatoGrav.x),
-						w = - viewAcc.z - viewAcc.x
-					})
-				}
-				local bottom = VestiViz.interpolateBar(bars.bottom, VestiViz.prev.bars.bottom)
-						  
-				local top = VestiViz.interpolateBar(bars.top, VestiViz.prev.bars.top)
-						  
-				local left = VestiViz.interpolateBar(bars.left, VestiViz.prev.bars.left)
-				
-				local right = VestiViz.interpolateBar(bars.right, VestiViz.prev.bars.right)
-
-				VestiViz.prev.bars = bars
-				
-				--VestiViz.window.DebugData:setText("Hi:"..bottom.off)
-				VestiViz.window.BottomArrow:setBounds(
-					VestiViz.width * (bottom.off - bottom.w), 
-					VestiViz.height - VestiViz.config.barWidth, 
-					2 * VestiViz.width * bottom.w,
-					VestiViz.config.barWidth)
-					
-				VestiViz.window.TopArrow:setBounds(
-					VestiViz.width * (top.off - top.w), 
-					0, 
-					2 * VestiViz.width * top.w,  
-					VestiViz.config.barWidth)	
-					
-				VestiViz.window.LeftArrow:setBounds(
-					0, 
-					VestiViz.height * (left.off - left.w), 
-					VestiViz.config.barWidth,  
-					2 * VestiViz.height * left.w)
-					
-				VestiViz.window.RightArrow:setBounds(
-					VestiViz.width-VestiViz.config.barWidth, 
-					VestiViz.height * (right.off - right.w), 
-					VestiViz.config.barWidth,  
-					2 * VestiViz.height * right.w)
-					
-				VestiViz.prev.time = now
-				VestiViz.prev.vel = vel
-				VestiViz.prev.dt = dt
-				
-				
-				if VestiViz.logModelUntil > now then
-					VestiViz.logCSV({dt, worldAcc.x, worldAcc.y, worldAcc.z, here.x,
-					here.y,here.z, vel.x,vel.y,vel.z, VestiViz.frames, 
-					VestiViz.prev.acc.x, VestiViz.prev.acc.y, VestiViz.prev.acc.z, VestiViz.accDescCrossEpoch,
-					VestiViz.periodHint, VestiViz.prev.posCirc._at})
-				end
-				VestiViz.frames = 0
-			end
-		end
-
-	end--]]
+	if VestiViz.framesSinceErrorFlush >= VestiViz.framesPerErrorFlush then
+		VestiViz.popPipelineErrors()
+		VestiViz.framesSinceErrorFlush = 0
+	end
+	VestiViz.framesSinceErrorFlush = VestiViz.framesSinceErrorFlush + 1
 end
 
 --------------------------------------------------------------
@@ -614,13 +486,17 @@ VestiViz.initPipeline = function()
 	VestiViz.log("Pipeline configured. Handles:");
 	VestiViz.log(VestiViz._PipelineData);
 
+	 VestiViz.popPipelineErrors()
+end
+ 
+ VestiViz.popPipelineErrors = function()
+	if VestiViz._Pipeline == nil then return end
 	local error = VestiViz._Pipeline.popError();
 	while error ~= nil do
 		VestiViz.log(error);
 		error = VestiViz._Pipeline.popError();
 	end
-end
- 
+ end
 --------------------------------------------------------------
 -- CALLBACKS
 VestiViz.onSimulationFrame = function()	
@@ -654,6 +530,7 @@ VestiViz.onSimulationStop = function()
 	if VestiViz._Pipeline ~= nil then 
 		VestiViz.log("Stopping pipeline")
 		VestiViz._Pipeline.stop() 
+		VestiViz.popPipelineErrors()
 	end
 end
 --------------------------------------------------------------
