@@ -379,8 +379,9 @@ VestiViz.doOnSimFrame = function()
 	
 	if VestiViz._Pipeline == nil then return end
 
-	local now = base.Export.LoGetModelTime() --getModelTime -- socket.gettime()/1000 -- DCS.getRealTime()
+	local now = base.Export.LoGetModelTime()
 	local pos3 = base.Export.LoGetCameraPosition()
+	--local shipVel = base.Export.LoGetVectorVelocity()
 
 	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputp,now, pos3);
 	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputxy,now, pos3);
@@ -437,43 +438,47 @@ VestiViz.initPipeline = function()
 
 	VestiViz._Pipeline = VestiViz._Lib.newPipeline();
 
+	local s = VestiViz.config.somatogravFactor
+	local a = VestiViz.config.accFactor
+	local r = VestiViz.config.rotFactor
+
 	local frameinput1, frameinput2;
 	local leaf1, input1 = VestiViz._Pipeline.accelByRegressionFilterPoint();
 	leaf1 = VestiViz._Pipeline.staticAddFilterPoint({x = 0, y = 9.81, z = 0},leaf1);
 	leaf1, frameinput1 = VestiViz._Pipeline.dynMatMultFilterPoint(leaf1,nil);
 	print(leaf1..":"..frameinput1);
 	leaf1 = VestiViz._Pipeline.staticAddFilterPoint({x = 0, y = -9.81, z = 0},leaf1);
-	leaf1 = VestiViz._Pipeline.quickCompressFilterPoint({x = 5, y = 20, z = 5},leaf1);
-	leaf1 = VestiViz._Pipeline.expDecayFilterPoint(0.2,leaf1);
+	leaf1 = VestiViz._Pipeline.quickCompressFilterPoint(VestiViz.config.acclims,leaf1);
+	leaf1 = VestiViz._Pipeline.expDecayFilterPoint(VestiViz.config.halflife,leaf1);
 	leaf1 = VestiViz._Pipeline.matMultFilterPointToWOff({
-					0.5, -0.5, 0.0,--T width
-					0.5, 0.0, -0.5,--R width
-					0.5, 0.5, 0.0,--B width
-					0.5, 0.0, 0.5,--L width
-					0.0, 0.0, 1.0, --T somatograv
-					1.0, 0.0, 1.0,--R
-					0.0, 0.0, -1.0,--B
-					1.0, 0.0, -1.0},
+					-a, -a, 0.0,--T width
+					-a, 0.0, -a,--R width
+					-a, a, 0.0,--B width
+					-a, 0.0, a,--L width
+					0.0, 0.0, s, --T somatograv
+					s, 0.0, s,--R
+					0.0, 0.0, -s,--B
+					s, 0.0, -s},
 					leaf1);
-	local leaf2, input2 = VestiViz._Pipeline.simpleDiffFilterXY();
+	local leaf2, input2 = VestiViz._Pipeline.simpleDiffFilterXY(nil,2);
 	leaf2, frameinput2 = VestiViz._Pipeline.dynMatMultPickFilterXYtoPoint({
 					{2,1}, --x-axis rot
 					{2,0}, --negative y-axis rot
 					{1,0}} --z-axis rot
 					,leaf2);
-	leaf2 = VestiViz._Pipeline.quickCompressFilterPoint({x = 0.5, y = 0.5, z = 0.5},leaf2);
-	leaf2 = VestiViz._Pipeline.expDecayFilterPoint(0.2,leaf2);
+	leaf2 = VestiViz._Pipeline.quickCompressFilterPoint(VestiViz.config.rotlims,leaf2);
+	leaf2 = VestiViz._Pipeline.expDecayFilterPoint(VestiViz.config.halflife,leaf2);
 	leaf2 = VestiViz._Pipeline.matMultFilterPointToWOff(
 					{0.0, 0.0, 0.0,--T width
 					0.0, 0.0, 0.0,--R
 					0.0, 0.0, 0.0,--B
 					0.0, 0.0, 0.0,--L 
-					-1.0, 1.0, 0.0, --T displacement
-					-1.0, 0.0, 1.0,--R
-					1.0, 1.0, 0.0,--B
-					1.0, 0.0, 1.0},
+					-r, -r, 0.0, --T displacement
+					-r, 0.0, r,--R
+					r, -r, 0.0,--B
+					r, 0.0, r},
 					leaf2);
-	local leaf3 = VestiViz._Pipeline.linCombFilterWOff(0.5,0.5,leaf1,leaf2);
+	local leaf3 = VestiViz._Pipeline.linCombFilterWOff(2,2,leaf1,leaf2);
 	leaf3 = VestiViz._Pipeline.quickCompressFilterWOff({w = {top = 1,right = 1,bottom = 1,left = 1}, off = {top = 1,right = 1,bottom = 1,left = 1}},leaf3);
 	leaf3 = VestiViz._Pipeline.convolveOutputFilterWOff({0.25,0.5,0.25},leaf3,3);
 	local output = VestiViz._Pipeline.makeWOffOutput(leaf3);

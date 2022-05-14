@@ -78,7 +78,7 @@ public:
 		DatumArr<S, V, N> ret;
 
 		for (int i = 0; i < N; i++) {
-			ret.mVec[i] = other.mVec[i] - mVec[i];
+			ret.mVec[i] = mVec[i] - other.mVec[i];
 		}
 		return ret;
 	}
