@@ -381,9 +381,9 @@ VestiViz.doOnSimFrame = function()
 
 	local now = base.Export.LoGetModelTime()
 	local pos3 = base.Export.LoGetCameraPosition()
-	--local shipVel = base.Export.LoGetVectorVelocity()
-
-	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputp,now, pos3);
+	local shipVel = base.Export.LoGetVectorVelocity()
+	
+	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputv,now, {p =shipVel});
 	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputxy,now, pos3);
 	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputframe1,now, pos3);
 	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputframe2,now, pos3);
@@ -443,7 +443,7 @@ VestiViz.initPipeline = function()
 	local r = VestiViz.config.rotFactor
 
 	local frameinput1, frameinput2;
-	local leaf1, input1 = VestiViz._Pipeline.accelByRegressionFilterPoint();
+	local leaf1, input1 = VestiViz._Pipeline.simpleDiffFilterPoint(nil,2);
 	leaf1 = VestiViz._Pipeline.staticAddFilterPoint({x = 0, y = 9.81, z = 0},leaf1);
 	leaf1, frameinput1 = VestiViz._Pipeline.dynMatMultFilterPoint(leaf1,nil);
 	print(leaf1..":"..frameinput1);
@@ -483,7 +483,7 @@ VestiViz.initPipeline = function()
 	leaf3 = VestiViz._Pipeline.convolveOutputFilterWOff({0.25,0.5,0.25},leaf3,3);
 	local output = VestiViz._Pipeline.makeWOffOutput(leaf3);
 
-	VestiViz._PipelineData = {inputp = input1,
+	VestiViz._PipelineData = {inputv = input1,
 							  inputxy = input2,
 							  inputframe1 = frameinput1,
 							  inputframe2 = frameinput2,
@@ -543,10 +543,7 @@ end
 VestiViz.onLogHotkey = function()
 	VestiViz.logModelUntil = base.Export.LoGetModelTime() + 3
 
-	VestiViz.logCSV({'dt', 'accx', 'accy', 'accz', 'x',
-					'y','z', 'vx','vy','vz', 'frames', 
-					'vax', 'vay', 'vaz', 'epoch',
-					'periodHint', 'circAt'})
+	VestiViz.log(base.Export.LoGetVectorVelocity())
 end
 
 VestiViz.onShowHotkey = function()
