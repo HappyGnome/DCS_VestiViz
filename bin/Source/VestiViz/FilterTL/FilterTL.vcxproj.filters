@@ -40,6 +40,9 @@
     <Filter Include="Source Files\Logging">
       <UniqueIdentifier>{6735280e-7bfd-4e12-b92f-f0ae8107136d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\FilterActions\Base">
+      <UniqueIdentifier>{6e3828b3-da39-4516-b859-f47af8915613}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CircPostbox.h">
@@ -73,9 +76,6 @@
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
     <ClInclude Include="ConvolveFilterAction.h">
-      <Filter>Header Files\FilterActions</Filter>
-    </ClInclude>
-    <ClInclude Include="FilterActionBase.h">
       <Filter>Header Files\FilterActions</Filter>
     </ClInclude>
     <ClInclude Include="ExpDecayFilterAction.h">
@@ -128,6 +128,15 @@
     </ClInclude>
     <ClInclude Include="ErrorStack.h">
       <Filter>Header Files\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiPartAsyncFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="FilterActionBase.h">
+      <Filter>Header Files\FilterActions\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="SingleInputFilterActionBase.h">
+      <Filter>Header Files\FilterActions\Base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

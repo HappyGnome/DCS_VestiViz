@@ -65,8 +65,7 @@ public:
 		}
 	}
 
-	virtual bool setOutput (typename IOWrapper::Wrapped&& wrappedInput) = 0;
-	virtual void unsetOutput() = 0;
-	virtual typename IOWrapper::Wrapped getInput(int index) = 0;
+	virtual bool setOutput (typename IOWrapper::Wrapped&& wrappedInput, bool blockingOutput = false) = 0;
+	virtual typename IOWrapper::Wrapped getInput(int index, bool enableBlocking = true) const = 0;
 };
 #endif

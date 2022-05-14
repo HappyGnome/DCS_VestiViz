@@ -32,5 +32,11 @@ public:
 	 */
 	virtual void cancel() = 0;
 
+	/**
+	 * Set whether to enable blocking for new input
+	 * @return
+	 */
+	virtual void setEnableWait(bool enable) = 0;
+
 };
 #endif

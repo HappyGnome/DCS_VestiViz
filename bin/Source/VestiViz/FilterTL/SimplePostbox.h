@@ -10,6 +10,4 @@ class SimplePostbox : public CircPostbox<T,LAlloc> {
 public:
 	SimplePostbox() :CircPostbox<T, LAlloc>(1) {};
 };
-
-
 #endif

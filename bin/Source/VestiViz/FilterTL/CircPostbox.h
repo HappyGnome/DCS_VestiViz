@@ -14,6 +14,7 @@ class CircPostbox : public PostboxBase<T, CircBufL, LAlloc> {
 
 	bool mCancelled = false;
 	bool mReadReceipt = false;
+	bool mEnableBlocking = true;
 	CircBufL<T, LAlloc> mOuterBuf;
 	std::mutex mOuterBufMutex;
 	std::condition_variable  mOuterBufCV;
@@ -93,7 +94,7 @@ public:
 	bool waitForPost() override{
 		std::unique_lock<std::mutex> lock(mOuterBufMutex);
 		if (mCancelled) return false;
-		while (mOuterBuf.empty()) {
+		while (mEnableBlocking && mOuterBuf.empty()) {
 			mOuterBufCV.wait(lock);
 			if (mCancelled) return false;
 		}
@@ -104,5 +105,9 @@ public:
 	const CircBufL<T, LAlloc>& output() const override{ return mInnerBuf; }
 
 	bool empty() const { return mInnerBuf.empty(); }
+
+	void setEnableWait(bool enable) override {
+		mEnableBlocking = enable;
+	}
 };
 #endif

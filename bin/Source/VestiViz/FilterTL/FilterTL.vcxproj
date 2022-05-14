@@ -187,6 +187,7 @@
     <ClInclude Include="DynMatMultPickFilterAction.h" />
     <ClInclude Include="ErrorStack.h" />
     <ClInclude Include="LogFilterAction.h" />
+    <ClInclude Include="MultiPartAsyncFilter.h" />
     <ClInclude Include="PipelineBase.h" />
     <ClInclude Include="AsyncFilter.h" />
     <ClInclude Include="CircPostbox.h" />
@@ -200,6 +201,7 @@
     <ClInclude Include="DoubleInputFilterBase.h" />
     <ClInclude Include="DynMatMultFilterAction.h" />
     <ClInclude Include="LinCombFilterAction.h" />
+    <ClInclude Include="SingleInputFilterActionBase.h" />
     <ClInclude Include="StatAddFilterAction.h" />
     <ClInclude Include="TemplateInterchangeWrapper.h" />
     <ClInclude Include="QuickCompressFilterAction.h" />
