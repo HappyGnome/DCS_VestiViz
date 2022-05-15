@@ -1,11 +1,10 @@
 #pragma once
-
+#define _TEST_MULTIPLYFILTER_H_
 #ifndef _TEST_MULTIPLYFILTER_H_
 #define _TEST_MULTIPLYFILTER_H_
 
 #include<list>
 
-#include "SingleInputFilterBase.h"
 #include "OutputFilterBase.h"
 //#include "CircPostbox.h"
 #include "SimplePostbox.h"

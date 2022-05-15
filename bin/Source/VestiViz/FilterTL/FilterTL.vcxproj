@@ -198,10 +198,9 @@
     <ClInclude Include="FilterActionBase.h" />
     <ClInclude Include="Datalin.h" />
     <ClInclude Include="AccelByRegressionFilterAction.h" />
-    <ClInclude Include="DoubleInputFilterBase.h" />
     <ClInclude Include="DynMatMultFilterAction.h" />
     <ClInclude Include="LinCombFilterAction.h" />
-    <ClInclude Include="SingleInputFilterActionBase.h" />
+    <ClInclude Include="FilterActionWithInputBase.h" />
     <ClInclude Include="StatAddFilterAction.h" />
     <ClInclude Include="TemplateInterchangeWrapper.h" />
     <ClInclude Include="QuickCompressFilterAction.h" />
@@ -209,10 +208,8 @@
     <ClInclude Include="StatMatMultFilterAction.h" />
     <ClInclude Include="TimedDatum.h" />
     <ClInclude Include="SimplePostbox.h" />
-    <ClInclude Include="SingleInputFilterBase.h" />
     <ClInclude Include="CircBuf.h" />
     <ClInclude Include="DatumArr.h" />
-    <ClInclude Include="OutputFilterBase.h" />
     <ClInclude Include="PostboxInputBase.h" />
     <ClInclude Include="PostboxBase.h" />
   </ItemGroup>

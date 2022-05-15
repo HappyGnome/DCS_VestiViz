@@ -9,23 +9,27 @@
 
 #include"Datalin.h"
 #include "TimedDatum.h"
-#include "FilterActionBase.h"
+#include "SimplePostbox.h"
+#include "FilterActionWithInputBase.h"
 
-template <
+template <typename IOWrapper,
 	typename S, 
 	typename Tin, 
 	typename Tmat,
-	typename Tout,
-	template<typename, typename> typename L, 
-	typename LAlloc = std::allocator<TimedDatum<S, Tin>>> 
-class StatMatMultFilterAction : public FilterActionBase<TimedDatum<S, Tin>, TimedDatum<S, Tout>, L, LAlloc> {
+	typename Tout> 
+class StatMatMultFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, Tin>, TimedDatum<S, Tout>, CircBufL, std::allocator<TimedDatum<S, T>>> {
 	Tmat mMat;
-public:
-	explicit StatMatMultFilterAction(Tmat&& mat) : mMat(std::move(mat)) {};
 
-	TimedDatum<S, Tout> actOn(
-		const L<TimedDatum<S, Tin>,
-		LAlloc>& vec) override {
+	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>>;
+	using FAWIB::getInputData;
+public:
+	explicit StatMatMultFilterAction(Tmat&& mat) :
+		FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, Tin>, CircBufL>>(new SimplePostbox< TimedDatum<S, Tin>>()))
+		mMat(std::move(mat)) {};
+
+	TimedDatum<S, Tout> actOn() override {
+		CircBufL<TimedDatum<S, Tin>> vec;
+		getInputData<CircBufL<TimedDatum<S, Tin>>, 0>(vec);
 
 		TimedDatum<S, Tout> ret;
 

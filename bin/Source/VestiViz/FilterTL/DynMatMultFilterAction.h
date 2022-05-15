@@ -9,32 +9,48 @@
 
 #include"Datalin.h"
 #include "TimedDatum.h"
-#include "FilterActionBase.h"
+#include "SimplePostbox.h"
+#include "FilterActionWithInputBase.h"
 
 template <
+	typename IOWrapper,
 	typename S,
 	typename Tout,
 	typename Tin1,
-	typename Tin2,
-	template<typename, typename> typename L1,
-	template<typename, typename> typename L2,
-	typename LAlloc1 = std::allocator<TimedDatum<S, Tin1>>,
-	typename LAlloc2 = std::allocator<TimedDatum<S, Tin2>> >
-class DynMatMultFilterAction : public DoubleFilterActionBase<
-			TimedDatum<S, Tin1>, 
-			TimedDatum<S, Tin2>,
+	typename Tin2>
+class DynMatMultFilterAction : public FilterActionWithInputBase <
+			IOWrapper,
 			TimedDatum<S, Tout>,
-			L1,
-			L2,
-			LAlloc1,
-			LAlloc2> {
+			TimedDatum<S, Tin1>,	
+			CircBufL, 
+			std::allocator<TimedDatum<S, Tin1>>,
+			TimedDatum<S, Tin2>,
+			CircBufL,
+			std::allocator<TimedDatum<S, Tin2>>> {
+
+	using FAWIB = FilterActionWithInputBase <
+		IOWrapper,
+		TimedDatum<S, Tout>,
+		TimedDatum<S, Tin1>,
+		CircBufL,
+		std::allocator<TimedDatum<S, Tin1>>,
+		TimedDatum<S, Tin2>,
+		CircBufL,
+		std::allocator<TimedDatum<S, Tin2>>>;
+	using FAWIB::getInputData;
 public:
-	TimedDatum<S, Tout> actOn(
-		const L1<TimedDatum<S, Tin1>,
-		LAlloc1>& vec,
-		const L2<TimedDatum<S, Tin2>,
-		LAlloc2>& matrix) override {
+	explicit DynMatMultFilterAction() :
+		FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, Tin1>, CircBufL>>(new SimplePostbox< TimedDatum<S, Tin1>>()),
+			std::shared_ptr<PostboxBase<TimedDatum<S, Tin2>, CircBufL>>(new SimplePostbox< TimedDatum<S, Tin2>>())) {}
+
+	TimedDatum<S, Tout> actOn() override {
 		
+		CircBufL<TimedDatum<S, Tin1>> vec;
+		CircBufL<TimedDatum<S, Tin2>> matrix;
+
+		getInputData<CircBufL<TimedDatum<S, Tin1>>, 0>(vec);
+		getInputData<CircBufL<TimedDatum<S, Tin2>>, 1>(matrix);
+
 		TimedDatum<S, Tout> ret;
 
 		if (!vec.empty() && !matrix.empty()) {

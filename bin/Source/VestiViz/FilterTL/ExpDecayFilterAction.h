@@ -8,19 +8,29 @@
 #include <math.h>
 
 #include"Datalin.h"
+#include "SimplePostbox.h"
 #include "TimedDatum.h"
-#include "FilterActionBase.h"
+#include "FilterActionWithInputBase.h"
 
-template <typename S, typename T, template<typename, typename> typename L, typename LAlloc = std::allocator<TimedDatum<S, T>>>
-class ExpDecayFilterAction : public FilterActionBase<TimedDatum<S, T>,TimedDatum<S, T>, L, LAlloc> {
+template <typename IOWrapper, typename S, typename T>
+class ExpDecayFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>,TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>> {
 	S mHalflife;
 	S mLastTime = 0;
 	S mNormalizationFactor = 0;
 	TimedDatum<S, T> mState= TimedDatum<S, T>::zero();
-public:
-	explicit ExpDecayFilterAction(S halflife) : mHalflife(halflife) {};
 
-	TimedDatum<S, T> actOn(const L<TimedDatum<S, T>, LAlloc>& data) override {
+	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>>;
+	using FAWIB::getInputData;
+public:
+	explicit ExpDecayFilterAction(S halflife) : 
+		FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, T>, CircBufL>>(new SimplePostbox< TimedDatum<S, T>>())),
+		mHalflife(halflife) {};
+
+	TimedDatum<S, T> actOn() override {
+
+		CircBufL<TimedDatum<S, T>> data;
+		getInputData<CircBufL<TimedDatum<S, T>>, 0>(data);
+
 		for (auto it = data.cbegin(); it != data.cend(); it++) {
 			S dt = it->t - mLastTime;
 

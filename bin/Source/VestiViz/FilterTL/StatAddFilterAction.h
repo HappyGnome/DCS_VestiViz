@@ -8,30 +8,37 @@
 #include <math.h>
 
 #include"Datalin.h"
+#include "SimplePostbox.h"
 #include "TimedDatum.h"
-#include "FilterActionBase.h"
+#include "FilterActionWithInputBase.h"
 
 template <
+	typename IOWrapper,
 	typename S,
-	typename T,
-	template<typename, typename> typename L,
-	typename LAlloc = std::allocator<TimedDatum<S, T>>>
-	class StatAddFilterAction : public FilterActionBase<TimedDatum<S, T>, TimedDatum<S, T>, L, LAlloc> {
+	typename T>
+class StatAddFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>> {
 	T mAdd;
-	public:
-		explicit StatAddFilterAction(T&& add) : mAdd(std::move(add)) {};
 
-		TimedDatum<S, T> actOn(
-			const L<TimedDatum<S, T>,LAlloc>& vec) override {
+	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>>;
+	using FAWIB::getInputData;
+public:
+	explicit StatAddFilterAction(T&& add) : 
+		FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, T>, CircBufL>>(new SimplePostbox< TimedDatum<S, T>>())),
+		mAdd(std::move(add)) {};
 
-			TimedDatum<S, T> ret;
+	TimedDatum<S, T> actOn() override {
 
-			if (!vec.empty()) {
-				ret.datum = vec.crbegin()->datum + mAdd;
-				ret.t = vec.crbegin()->t;
-			}
-			return ret;
-		};
+		CircBufL<TimedDatum<S, T>> vec;
+		getInputData<CircBufL<TimedDatum<S, T>>, 0>(vec);
+
+		TimedDatum<S, T> ret;
+
+		if (!vec.empty()) {
+			ret.datum = vec.crbegin()->datum + mAdd;
+			ret.t = vec.crbegin()->t;
+		}
+		return ret;
+	};
 };
 
 #endif

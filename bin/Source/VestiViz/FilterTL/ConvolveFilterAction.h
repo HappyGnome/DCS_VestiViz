@@ -8,11 +8,12 @@
 #include <algorithm>
 
 #include "TimedDatum.h"
-#include "FilterActionBase.h"
+#include "CircPostbox.h"
+#include "FilterActionWithInputBase.h"
 #include "Datalin.h"
 
-template <typename S, typename T, template<typename,typename> typename L, typename LAlloc = std::allocator<TimedDatum<S, T>>>
-class ConvolveFilterAction : public FilterActionBase<TimedDatum<S, T>,TimedDatum<S,T>,L,LAlloc>{
+template <typename IOWrapper,typename S, typename T>
+class ConvolveFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>,TimedDatum<S,T>, CircBufL, std::allocator<TimedDatum<S, T>>>{
 	std::vector<S> mKernel;
 	std::vector<S> mTimeKernel;
 
@@ -29,12 +30,18 @@ class ConvolveFilterAction : public FilterActionBase<TimedDatum<S, T>,TimedDatum
 		}
 		else mTimeKernel = mKernel;//both are zero
 	}
+
+	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>>;
+	using FAWIB::getInputData;
 public:
-	explicit ConvolveFilterAction(std::vector<S>&& kernel) :mKernel(kernel){
+	explicit ConvolveFilterAction(std::vector<S>&& kernel) :FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, T>, CircBufL>>(new CircPostbox< TimedDatum<S, T>>(kernel.size()))), mKernel(kernel){
 		makeTimeKernel();
 	}
 
-	TimedDatum<S, T> actOn(const L<TimedDatum<S, T>,LAlloc>& data) override {
+	TimedDatum<S, T> actOn() override {
+		CircBufL<TimedDatum<S, T>> data;
+		getInputData<CircBufL<TimedDatum<S, T>>, 0>(data);
+
 		std::size_t window = std::min<std::size_t>(mKernel.size(), data.size());
 		auto itK = mKernel.cbegin();
 		auto itT = mTimeKernel.cbegin();

@@ -69,12 +69,6 @@
     <ClInclude Include="AsyncFilter.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
-    <ClInclude Include="OutputFilterBase.h">
-      <Filter>Header Files\Filters</Filter>
-    </ClInclude>
-    <ClInclude Include="SingleInputFilterBase.h">
-      <Filter>Header Files\Filters</Filter>
-    </ClInclude>
     <ClInclude Include="ConvolveFilterAction.h">
       <Filter>Header Files\FilterActions</Filter>
     </ClInclude>
@@ -92,9 +86,6 @@
     </ClInclude>
     <ClInclude Include="Datacomp.h">
       <Filter>Header Files\Datums</Filter>
-    </ClInclude>
-    <ClInclude Include="DoubleInputFilterBase.h">
-      <Filter>Header Files\Filters</Filter>
     </ClInclude>
     <ClInclude Include="DatumMatrix.h">
       <Filter>Header Files\Datums</Filter>
@@ -135,7 +126,7 @@
     <ClInclude Include="FilterActionBase.h">
       <Filter>Header Files\FilterActions\Base</Filter>
     </ClInclude>
-    <ClInclude Include="SingleInputFilterActionBase.h">
+    <ClInclude Include="FilterActionWithInputBase.h">
       <Filter>Header Files\FilterActions\Base</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,15 +1,6 @@
 #include <iostream>
 #include<random>
 
-#include "MultiplyFilter.h"
-#include "ConvOutF.h"
-#include "LogSIF.h"
-#include "ExpDecaySIF.h"
-#include "RegDiffSIF.h"
-#include "QCompSIF.h"
-#include "DynMatMultDIF.h"
-#include "LinCombDIF.h"
-#include "StatMatMultSIF.h"
 
 #include "DatumMatrix.h"
 
@@ -20,7 +11,7 @@
 using namespace std::chrono_literals;
 
 
-void Test1() {
+/*void Test1() {
     MultiplyProcessor m1(2);
     LogSIF<double, double, Test_IOWrapper> l1("Doubled ");
     ExpDecaySIF<double,double, Test_IOWrapper> e1(1);
@@ -54,10 +45,10 @@ void Test1() {
     l3.stopProcessing();
 
     std::cout << "End";
-}
+}*/
 
 
-void Test2() {
+/*void Test2() {
     RegDiffSIF<double,double, Test_IOWrapper> rd1(16);
     LogSIF<double, double, Test_IOWrapper> l1("Accel: ");
   
@@ -80,9 +71,9 @@ void Test2() {
     l1.stopProcessing();
 
     std::cout << "End";
-}
+}*/
 
-void Test3() {
+/*void Test3() {
     Vec3Datum<double> myVec( 2.0f,3.0f,4.0f );
 
     Vec3Datum<double> compScale1(2.0f, 3.0f, 4.0f);
@@ -157,7 +148,7 @@ void Test5() {
     l3.stopProcessing();
 
     std::cout << "End";
-}
+}*/
 
 void Test6() {
    /* auto vp = VestivizPipeline<double>();

@@ -63,13 +63,15 @@ public:
 
 		//validate input connection params
 		for (auto it = fromLeaves.cbegin(); it != fromLeaves.cend(); it++) {
-			if(*it != NEW_INPUT && (mLeafIndices.size() <= *it || mLeafIndices[*it] == LEAF_REJOINED)return false;
+			if(*it != NEW_INPUT 
+				&& (mLeafIndices.size() <= *it || mLeafIndices[*it] == LEAF_REJOINED))return false;
 		}
 
 		//Try to make connections
 		std::size_t inputNumber = 0;
 		for (auto it = fromLeaves.cbegin(); it != fromLeaves.cend(); it++) {
-			if(*it != NEW_INPUT && !mFilterActions[mLeafIndices[*it]]->setOutput(action->getInput(inputNumber,false))return false;
+			if(	*it != NEW_INPUT 
+				&& !mFilterActions[mLeafIndices[*it]]->setOutput(action->getInput(inputNumber,false)))return false;
 			inputNumber++;
 		}
 
@@ -88,9 +90,23 @@ public:
 		return true;
 	}
 
-	bool setOutput(std::size_t leafFrom, typename IOWrapper::Wrapped&& wrappedInput, bool blockingOutput = false) override{
+	bool setOutput(typename IOWrapper::Wrapped&& wrappedInput, bool blockingOutput = false) override{
 		std::lock_guard<std::mutex> lock(mFilterIndicesMutex);
-		if (leafFrom >= mLeafIndices.size() || mLeafIndices[leafFrom] == LEAF_REJOINED) return false;
+
+		std::size_t leafFrom = 0;
+		bool leafFound = false;
+		for (auto it = mLeafIndices.cbegin(); it != mLeafIndices.cend(); it++) {
+			if (*it != LEAF_REJOINED && leafFound) {
+				 return false;
+			}
+			else if (*it == LEAF_REJOINED && !leafFound) {
+				leafFrom++;
+			}
+			else leafFound = true;
+			
+		}
+		if (!leafFound) return false;
+
 		if (!mFilterActions[mLeafIndices[leafFrom]]->setOutput(std::move(wrappedInput))) return false;
 
 		mFilterActions[mLeafIndices[leafFrom]]->setBlockForOutput(blockingOutput);

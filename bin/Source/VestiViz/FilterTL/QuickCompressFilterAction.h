@@ -10,15 +10,25 @@
 #include"Datalin.h"
 #include"Datacomp.h"
 #include "TimedDatum.h"
-#include "FilterActionBase.h"
+#include "SimplePostbox.h"
+#include "FilterActionWithInputBase.h"
 
-template <typename S, typename T, template<typename, typename> typename L, typename LAlloc = std::allocator<TimedDatum<S, T>>>
-class QuickCompressFilterAction : public FilterActionBase<TimedDatum<S, T>, TimedDatum<S, T>, L, LAlloc> {
+template <typename IOWrapper, typename S, typename T>
+class QuickCompressFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>> {
 	T mCalib;
-public:
-	explicit QuickCompressFilterAction(T calibration) : mCalib(calibration) {};
 
-	TimedDatum<S, T> actOn(const L<TimedDatum<S, T>, LAlloc>& data) override {
+	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>>;
+	using FAWIB::getInputData;
+public:
+	explicit QuickCompressFilterAction(T calibration) : 
+		FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, T>, CircBufL>>(new SimplePostbox< TimedDatum<S, T>>())),
+		mCalib(calibration) {};
+
+	TimedDatum<S, T> actOn() override {
+
+		CircBufL<TimedDatum<S, T>> data;
+		getInputData<CircBufL<TimedDatum<S, T>>, 0>(data);
+
 		if (data.empty()) return Datalin<S, TimedDatum<S, T>>::zero();
 
 		TimedDatum<S, T> ret;
