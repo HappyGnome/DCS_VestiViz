@@ -17,13 +17,15 @@
 template <typename IOWrapper, 
 		  typename S,
 		  typename T>
-class AccelByRegressionFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>> {
+class AccelByRegressionFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, CircBufL, std::allocator, TimedDatum<S, T>> {
 
-	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>>;
+	std::size_t mWindow;
+
+	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, CircBufL, std::allocator, TimedDatum<S, T>>;
 	using FAWIB::getInputData;
 public:
 
-	explicit AccelByRegressionFilterAction(std::size_t window) :FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, T>, CircBufL>>(new CircPostbox< TimedDatum<S, T>> (window))) {}
+	explicit AccelByRegressionFilterAction(std::size_t window) : FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, T>, CircBufL>>(new CircPostbox< TimedDatum<S, T>> (window))), mWindow(window) {}
 
 	TimedDatum<S, T> actOn() override {
 		CircBufL<TimedDatum<S, T>> data;

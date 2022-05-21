@@ -13,13 +13,13 @@
 #include "FilterActionWithInputBase.h"
 
 template <typename IOWrapper, typename S, typename T>
-class ExpDecayFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>,TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>> {
+class ExpDecayFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, CircBufL, std::allocator,TimedDatum<S, T>> {
 	S mHalflife;
 	S mLastTime = 0;
 	S mNormalizationFactor = 0;
 	TimedDatum<S, T> mState= TimedDatum<S, T>::zero();
 
-	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>>;
+	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, CircBufL, std::allocator, TimedDatum<S, T>>;
 	using FAWIB::getInputData;
 public:
 	explicit ExpDecayFilterAction(S halflife) : 

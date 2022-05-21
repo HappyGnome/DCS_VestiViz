@@ -25,7 +25,7 @@ protected:
 
 	bool process() override {
 		for (auto it = mFilterActions.begin(); it != mFilterActions.end(); it++) {
-			if(!*it->action())return false;
+			if(!(*it)->action())return false;
 		}
 		return true;
 	}
@@ -36,7 +36,7 @@ protected:
 	 */
 	void cancel() override {
 		for (auto it = mFilterActions.begin(); it != mFilterActions.end(); it++) {
-			*it->cancel();
+			(*it)-> cancel();
 		}
 	}
 public:
@@ -53,13 +53,13 @@ public:
 		return mFilterActions[std::get<0>(inSpec)]->getInput(std::get<1>(inSpec),enableBlocking);
 	}
 
-	template<typename S, typename Tin, typename Tout>
 	bool addAction(std::shared_ptr<FilterActionBase<IOWrapper>> action,
 		const std::vector<std::size_t>& fromLeaves,
-		std::size_t& outputLeaf) {
+		std::size_t& outputLeaf,
+		std::vector<std::size_t>& outputNewInputHandles) {
 
 		std::lock_guard<std::mutex> lock(mFilterIndicesMutex);
-		if (action == nullptr || action->inputCount() > fromLeaves.size) return false;
+		if (action == nullptr || action->inputCount() > fromLeaves.size()) return false;
 
 		//validate input connection params
 		for (auto it = fromLeaves.cbegin(); it != fromLeaves.cend(); it++) {
@@ -81,9 +81,13 @@ public:
 
 		//validate input connection params
 		inputNumber = 0;
+		outputNewInputHandles.clear();
 		for (auto it = fromLeaves.cbegin(); it != fromLeaves.cend(); it++) {
 			if (*it != NEW_INPUT) mLeafIndices[*it] = LEAF_REJOINED;
-			else mInputIndices.emplace_back(mFilterActions.size() - 1, inputNumber);
+			else {
+				mInputIndices.emplace_back(mFilterActions.size() - 1, inputNumber);
+				outputNewInputHandles.push_back(mInputIndices.size() - 1);
+			}
 			inputNumber++;
 		}
 
@@ -114,6 +118,13 @@ public:
 		mLeafIndices[leafFrom] = LEAF_REJOINED;
 
 		return true;
+	}
+
+
+	int getInputCount() override{
+		std::lock_guard<std::mutex> lock(mFilterIndicesMutex);
+
+		return (int)mInputIndices.size();
 	}
 
 	bool validate() {

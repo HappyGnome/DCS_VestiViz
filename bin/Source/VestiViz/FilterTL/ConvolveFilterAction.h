@@ -13,7 +13,7 @@
 #include "Datalin.h"
 
 template <typename IOWrapper,typename S, typename T>
-class ConvolveFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>,TimedDatum<S,T>, CircBufL, std::allocator<TimedDatum<S, T>>>{
+class ConvolveFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, CircBufL, std::allocator, TimedDatum<S,T>>{
 	std::vector<S> mKernel;
 	std::vector<S> mTimeKernel;
 
@@ -31,7 +31,7 @@ class ConvolveFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDa
 		else mTimeKernel = mKernel;//both are zero
 	}
 
-	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>>;
+	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, CircBufL, std::allocator , TimedDatum<S, T>>;
 	using FAWIB::getInputData;
 public:
 	explicit ConvolveFilterAction(std::vector<S>&& kernel) :FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, T>, CircBufL>>(new CircPostbox< TimedDatum<S, T>>(kernel.size()))), mKernel(kernel){

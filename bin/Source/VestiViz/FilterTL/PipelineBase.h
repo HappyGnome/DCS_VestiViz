@@ -19,11 +19,12 @@ class PipelineBase {
 	std::vector< std::tuple<std::size_t, int> > mInputIndices; // (index into mFilters, input number)
 	std::shared_ptr<ErrorStack> mErrors;
 protected:
-	bool TryConnectFilter(const std::vector<std::size_t>& fromLeaves, std::size_t leafToAddIndex, std::size_t& outputLeaf) {
+	bool TryConnectFilter(const std::vector<std::size_t>& fromLeaves, std::size_t leafToAddIndex, std::size_t& outputLeaf, std::vector<std::size_t>& newInputs) {
 
 		if (leafToAddIndex >= mLeavesInConstructionIndices.size())return false;
 		std::size_t filterIndex = mLeavesInConstructionIndices[leafToAddIndex];
-		if(filterIndex == LEAF_CONSTRUCTED || filterIndex > mFilters.size()) return false;
+		std::shared_ptr<MultiPartAsyncFilter<IOWrapper>> filterToConnect = mFilters[filterIndex];
+		if(filterIndex == LEAF_CONSTRUCTED || filterIndex > mFilters.size() || fromLeaves.size() < filterToConnect->getInputCount()) return false;
 
 		//validate input connection params
 		for (auto it = fromLeaves.cbegin(); it != fromLeaves.cend(); it++) {
@@ -36,7 +37,7 @@ protected:
 		std::size_t inputNumber = 0;
 		for (auto it = fromLeaves.cbegin(); it != fromLeaves.cend(); it++) {
 			if (*it != NEW_INPUT
-				&& !mFilterActions[mLeafIndices[*it]]->setOutput(mFilters[filterIndex]->getInput(inputNumber, true)))return false;
+				&& !mFilters[mLeafIndices[*it]]->setOutput(filterToConnect->getInput(inputNumber, true)))return false;
 			inputNumber++;
 		}
 		mLeavesInConstructionIndices[leafToAddIndex] = LEAF_CONSTRUCTED;
@@ -45,9 +46,13 @@ protected:
 
 		//validate input connection params
 		inputNumber = 0;
+		newInputs.clear();
 		for (auto it = fromLeaves.cbegin(); it != fromLeaves.cend(); it++) {
 			if (*it != NEW_INPUT) mLeafIndices[*it] = LEAF_REJOINED;
-			else mInputIndices.emplace_back(mFilters.size() - 1, inputNumber);
+			else {
+				mInputIndices.emplace_back(mFilters.size() - 1, inputNumber);
+				newInputs.push_back(mInputIndices.size() - 1);
+			}
 			inputNumber++;
 		}
 
@@ -59,7 +64,8 @@ protected:
 		std::size_t leafToAddIndex, 
 		const std::vector<std::size_t>& fromInternalLeaves,
 		std::size_t& outputLeaf, 
-		std::size_t& actionOutputLeaf) {
+		std::size_t& outputActionLeaf,
+		std::vector<std::size_t>& outputActionNewInputs) {
 
 		if (newAction == nullptr) return false;
 		if (leafToAddIndex != NEW_LEAF_FILTER && leafToAddIndex >= mLeavesInConstructionIndices.size()) return false;
@@ -71,14 +77,21 @@ protected:
 		}
 		else {
 			
-			mFilters.push_back(std::shared_ptr<MultiPartAsyncFilter<IOWrapper>> newFilter(new MultiPartAsyncFilter<IOWrapper>()));
+			mFilters.push_back(std::shared_ptr<MultiPartAsyncFilter<IOWrapper>>(new MultiPartAsyncFilter<IOWrapper>()));
 			filterIndex = mFilters.size() - 1;
 			mLeavesInConstructionIndices.push_back(filterIndex);
 			outputLeaf = mLeavesInConstructionIndices.size() - 1;
 		}
 
 		if (mFilters[filterIndex] == nullptr) return false;
-		return mFilters[filterIndex] -> addAction(newAction, const std::vector<std::size_t>&fromInternalLeaves, std::size_t & actionOutputLeaf)
+		return mFilters[filterIndex]->addAction(newAction, fromInternalLeaves, outputActionLeaf, outputActionNewInputs);
+	}
+
+	bool TryGetFilterInputCount(std::size_t filterInConstructionHandle, int& output) {
+		if (filterInConstructionHandle >= mLeavesInConstructionIndices.size())return false;
+		std::size_t filterIndex = mLeavesInConstructionIndices[filterInConstructionHandle];
+		output = mFilters[filterIndex]->getInputCount();
+		return true;
 	}
 
 public:
@@ -128,6 +141,10 @@ public:
 	bool validate() {
 		for (auto it = mLeafIndices.cbegin(); it != mLeafIndices.cend(); it++) {
 			if (*it != LEAF_REJOINED) return false;
+		}
+
+		for (auto it = mFilters.cbegin(); it != mFilters.cend(); it++) {
+			if (!(*it) -> validate()) return false;
 		}
 		return true;
 	}

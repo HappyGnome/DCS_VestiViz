@@ -3,9 +3,16 @@
 #ifndef _VESTIVIZPIPELINE_H_
 #define _VESTIVIZPIPELINE_H_
 
-
+#include "AccelByRegressionFilterAction.h"
+#include "DynMatMultFilterAction.h"
 #include "StatAddFilterAction.h"
-#include "LinCombFilterAction.h"//"LinCombDIF.h"
+#include "QuickCompressFilterAction.h"
+#include "ExpDecayFilterAction.h"
+#include "StatMatMultFilterAction.h"
+#include "SimpleDiffFilterAction.h"
+#include "DynMatMultPickFilterAction.h"
+#include "ConvolveFilterAction.h"
+#include "LinCombFilterAction.h"
 #include "LogFilterAction.h"
 #include "PipelineBase.h"
 #include "DatumMatrix.h"
@@ -39,9 +46,9 @@ class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 		return (VestivizPipeline*)lua_topointer(L, lua_upvalueindex(1));
 	}
 
-	// Args: filterHandle (or nil for new), {internal leaf handles to connect new action to}
-	//return: filterhandle, new internal leaf handle
-	template<typename Tin, typename Tout, typename WrappedTPostbox>
+	// Args: filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
+	template<std::size_t N>
 	static int addAction_lua(lua_State* L, std::shared_ptr<FilterActionBase<PIB_Wrapper>> action, int stackOffset) {
 
 		VestivizPipeline* p = GetPipelineUpVal(L);
@@ -53,179 +60,35 @@ class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 		bool newInput = leaf == NEW_LEAF_FILTER;
 
 		std::vector<std::size_t> internalLeaves;
-		int i = 0;
-		if (lua_istable(L, stackOffset + 2)) {
-			lua_pushinteger(L, i);
-			lua_gettable(L, stackOffset + 2);
-
-			while (lua_isnumber(L, -1)) {
-
-				int n = lua_tonumber(L, -1);
-
-				internalLeaves.push_back(L, n<0? MultiPartAsyncFilter<PIB_Wrapper>::NEW_INPUT:n);
-
-				lua_pop(L, 1);
-				i++;
-				lua_pushinteger(L, i);
-				lua_gettable(L, stackOffset + 2);
+		for (int i = 0; i < N; i++) {
+			if (lua_isnumber(L, stackOffset + 2 + i)) {
+				int n = lua_tonumber(L, stackOffset + 2 + i);
+				internalLeaves.push_back( n < 0 ? MultiPartAsyncFilter<PIB_Wrapper>::NEW_INPUT : n);
 			}
-
-			lua_pop(L, 1);
+			else internalLeaves.push_back(MultiPartAsyncFilter<PIB_Wrapper>::NEW_INPUT);
 		}
 		
+		
 		std::size_t filterHandle, newInternalLeafHandle;
+		std::vector<std::size_t> newFilterInputHandles;
 
-		if (p->TryAddFilterAction(action,leaf,internalLeaves,filterHandle, newInternalLeafHandle)) {
+		if (p->TryAddFilterAction(action,leaf,internalLeaves,filterHandle, newInternalLeafHandle,newFilterInputHandles)) {
 
 			lua_pushnumber(L, filterHandle);
 			lua_pushnumber(L, newInternalLeafHandle);
-			return 2;
+			lua_createtable(L, newFilterInputHandles.size(), 0);
+
+			for (int j = 0; j < newFilterInputHandles.size(); j++) {
+				lua_pushnumber(L, newFilterInputHandles[j]);
+				lua_rawseti(L, -2, j);
+			}
+		
+			return 3;
 		}
 		VestivizPipeline::log(p,"Failed to add buffered SIF.");
 		return 0;
 	}
 
-	// Args: filterHandle, {internal leaf handles to connect new action to}
-	//return: filterhandle, new internal leaf handle
-	template<typename Tin, typename Tout, typename WrappedTPostbox>
-	static int connectAction_lua(lua_State* L, std::shared_ptr<FilterActionBase<PIB_Wrapper>> action, int stackOffset) {
-
-		VestivizPipeline* p = GetPipelineUpVal(L);
-		if (p == nullptr) return 0;
-
-		std::size_t leaf = NEW_LEAF_FILTER;
-		if (lua_isnumber(L, stackOffset + 1)) leaf
-			= lua_tointeger(L, stackOffset + 1);
-		bool newInput = leaf == NEW_LEAF_FILTER;
-
-		std::vector<std::size_t> internalLeaves;
-		int i = 0;
-		if (lua_istable(L, stackOffset + 2)) {
-			lua_pushinteger(L, i);
-			lua_gettable(L, stackOffset + 2);
-
-			while (lua_isnumber(L, -1)) {
-
-				int n = lua_tonumber(L, -1);
-
-				internalLeaves.push_back(L, n < 0 ? MultiPartAsyncFilter<PIB_Wrapper>::NEW_INPUT : n);
-
-				lua_pop(L, 1);
-				i++;
-				lua_pushinteger(L, i);
-				lua_gettable(L, stackOffset + 2);
-			}
-
-			lua_pop(L, 1);
-		}
-
-		std::size_t filterHandle, newInternalLeafHandle;
-
-		if (p->TryAddFilterAction(action, leaf, internalLeaves, filterHandle, newInternalLeafHandle)) {
-
-			lua_pushnumber(L, filterHandle);
-			lua_pushnumber(L, newInternalLeafHandle);
-			return 2;
-		}
-		VestivizPipeline::log(p, "Failed to add buffered SIF.");
-		return 0;
-	}
-
-	template<typename Tin, typename Tout, typename WrappedTPostbox>
-	static int addSimpleSIF_lua(lua_State* L, PFAB<S, Tin, Tout>&& action, int stackOffset) {
-
-		VestivizPipeline* p = GetPipelineUpVal(L);
-		if (p == nullptr) return 0;
-
-		std::size_t leaf = NEW_INPUT;
-		if (lua_isnumber(L, stackOffset + 1)) leaf = lua_tointeger(L, stackOffset + 1);
-		bool newInput = leaf == NEW_INPUT;
-
-		if (p->addSimpleSIF(leaf,
-			PFAB<S, Tin, Tout>(std::move(action)), leaf)) {
-			lua_pushnumber(L, leaf);
-			if (newInput) {
-				auto input = PIB_Wrapper::Unwrap<TimedDatum<S, Tin>>(p -> getLastInput());
-				p->mLuaInputs.push_back(std::shared_ptr<DatumInputPostboxWrapper>(new WrappedTPostbox(input)));
-				lua_pushnumber(L, p->mLuaInputs.size() - 1);
-
-				return 2;
-			}
-
-			return 1;
-		}
-
-		VestivizPipeline::log(p, "Failed to add simple SIF.");
-
-		return 0;
-	}
-
-	template<typename Tin1, typename Tin2, typename Tout, typename WrappedT1Postbox, typename WrappedT2Postbox>
-	static int addSimpleDIF_lua(lua_State* L, PDFAB<S, Tin1, Tin2, Tout>&& action, int stackOffset) {
-
-		VestivizPipeline* p = GetPipelineUpVal(L);
-		if (p == nullptr) return 0;
-
-		std::size_t leaf1 = NEW_INPUT;
-		if (lua_isnumber(L, stackOffset + 1)) leaf1 = lua_tointeger(L, stackOffset + 1);
-		bool newInput1 = leaf1 == NEW_INPUT;
-
-		std::size_t leaf2 = NEW_INPUT;
-		if (lua_isnumber(L, stackOffset + 2)) leaf2 = lua_tointeger(L, stackOffset + 2);
-		bool newInput2 = leaf2 == NEW_INPUT;
-
-		std::size_t leafOut = -1;
-
-		if (p->addSimpleDIF(leaf1, leaf2,
-			PDFAB<S, Tin1, Tin2, Tout>(std::move(action)), leafOut)) {
-			lua_pushnumber(L, leafOut);
-			int pushed = 1;
-
-			if (newInput1) {
-				p->mLuaInputs.push_back(std::shared_ptr<DatumInputPostboxWrapper>(
-					new WrappedT1Postbox(PIB_Wrapper::Unwrap<TimedDatum<S, Tin1>>(p->getLastInput()))));
-				lua_pushnumber(L, p->mLuaInputs.size() - 1);
-				pushed++;
-			}
-			if (newInput2) {
-				p->mLuaInputs.push_back(std::shared_ptr<DatumInputPostboxWrapper>(
-					new WrappedT2Postbox(PIB_Wrapper::Unwrap<TimedDatum<S, Tin2>>(p->getLastInput()))));
-				lua_pushnumber(L, p->mLuaInputs.size() - 1);
-				pushed++;
-			}
-			return pushed;
-		}
-		VestivizPipeline::log(p, "Failed to add simple DIF.");
-		return 0;
-	}
-
-	template<typename Tin, typename Tout, typename WrappedTPostbox >
-	static int addBufferedOutF_lua(lua_State* L, PFAB<S, Tin, Tout>&& action, int stackOffset) {
-
-		VestivizPipeline* p = GetPipelineUpVal(L);
-		if (p == nullptr) return 0;
-
-		std::size_t leaf = NEW_INPUT;
-		if (lua_isnumber(L, stackOffset + 1)) leaf = lua_tointeger(L, stackOffset + 1);
-		bool newInput = leaf == NEW_INPUT;
-
-		std::size_t windowSize = 8;
-		if (lua_isnumber(L, stackOffset + 2)) windowSize = lua_tointeger(L, stackOffset + 2);
-
-		if (p->addBufferedOutF(leaf, windowSize,
-			PFAB<S, Tin, Tout>(std::move(action)), leaf)) {
-			lua_pushnumber(L, leaf);
-			if (newInput) {
-				auto input = PIB_Wrapper::Unwrap<TimedDatum<S, Tin>>(getLastInput());
-				p->mLuaInputs.push_back(std::shared_ptr<DatumInputPostboxWrapper>(new WrappedTPostbox(input)));
-				lua_pushnumber(L, p->mLuaInputs.size() - 1);
-				return 2;
-			}
-			return 1;
-		}
-		VestivizPipeline::log(p, "Failed to add buffered OutF.");
-		return 0;
-	}
 	// Args: leaf index
 	// Return: output index
 	template<typename S, typename Tout, typename WrappedTPostbox >
@@ -262,6 +125,7 @@ public:
 	using M3 = DatumMatrix<S, 3, 3>;
 	using M8x3 = DatumMatrix<S, 8, 3>;
 
+	using PFAB = std::shared_ptr<FilterActionBase<PIB_Wrapper>>;
 	
 	explicit VestivizPipeline(std::shared_ptr<ErrorStack> errors) :
 		PipelineBase<PIB_Wrapper>(errors),
@@ -298,181 +162,228 @@ public:
 		return p->mLuaOutputs[outputIndex]->WriteToLua(L, 1);
 	}
 
-	//args: leaf index, buffer size
-	// return leafIndex, inputIndex = nil
+	// Args: buffer size, filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle
 	static int l_AccelByRegressionFilterPoint(lua_State* L) {
 		try{
-			return VestivizPipeline::addBufferedSIF_lua<V3,V3, DIPW_point<S>>(L, PFAB<S, V3, V3>
-				(new AccelByRegressionFilterAction<S, V3>()), 
-				0);
-		}
-		catch (...) {/*TODO logging*/ }
-		return 0;
-	}
+			if (!lua_isnumber(L, 1)) return 0;
+			int window = lua_tointeger(L, 1);
 
-	//args: {x,y,z}, leaf index
-	// return leafIndex, inputIndex = nil
-	static int l_StaticAddFilterPoint(lua_State* L) {
-		try{
-			std::array<S, 3> x;
-			if (!ReadVec3(L, 1, x)) return 0;
-			return VestivizPipeline::addSimpleSIF_lua<V3, V3, DIPW_point<S>>(
-				L, 
-				PFAB<S, V3, V3>(new StatAddFilterAction<S, V3, CircBufL>(V3(x[0], x[1], x[2]))), 
+			return VestivizPipeline::addAction_lua<1>(L, 
+				PFAB(new AccelByRegressionFilterAction<PIB_Wrapper,S, V3>(window)), 
 				1);
 		}
 		catch (...) {/*TODO logging*/ }
 		return 0;
 	}
 
-	//args: leaf index1, leaf index2
-	// return leafIndex, inputIndex1 = nil, inputIndex2 = nil
+	// Args: {x,y,z}, filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
+	static int l_StaticAddFilterPoint(lua_State* L) {
+		try{
+			std::array<S, 3> x;
+			if (!ReadVec3(L, 1, x)) return 0;
+			return VestivizPipeline::addAction_lua<1>(
+				L, 
+				PFAB(new StatAddFilterAction<PIB_Wrapper, S, V3>(V3(x[0], x[1], x[2]))),
+				1);
+		}
+		catch (...) {/*TODO logging*/ }
+		return 0;
+	}
+
+	// Args: filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
 	static int l_DynMatMultFilterPoint(lua_State* L) {
 		try{
-			return VestivizPipeline::addSimpleDIF_lua<V3, M3, V3, DIPW_point<S>, DIPW_frame<S>>(
+			return VestivizPipeline::addAction_lua<2>(
 				L,
-				PDFAB<S, V3, M3, V3>(new DynMatMultFilterAction<S, V3, V3, M3, CircBufL, CircBufL>()), 
+				PFAB(new DynMatMultFilterAction<PIB_Wrapper, S, V3, V3, M3>()),
 				0);
 		}
 		catch (...) {/*TODO logging*/ }
 		return 0;
 	}
 
-	//args: {x,y,z}, leaf index
-	// return leafIndex, inputIndex = nil
+	// Args: {x,y,z}, filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
 	static int l_QuickCompressFilterPoint(lua_State* L) {
 		try {
 			std::array<S, 3> x;
 			if (!ReadVec3(L, 1, x)) return 0;
 
-			return VestivizPipeline::addSimpleSIF_lua<V3, V3, DIPW_point<S>>(
+			return VestivizPipeline::addAction_lua<1>(
 				L,
-				PFAB<S, V3, V3>(new QuickCompressFilterAction<S, V3, CircBufL>(V3(x[0], x[1], x[2]))),
+				PFAB(new QuickCompressFilterAction<PIB_Wrapper, S, V3>(V3(x[0], x[1], x[2]))),
 				1);
 		}
 		catch (...) {/*TODO logging*/ }
 		return 0;
 	}
 
-	//args: halflife, leaf index
-	// return leafIndex, inputIndex = nil
+	// Args: halflife, filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
 	static int l_ExpDecayFilterPoint(lua_State* L) {
 		try{
 			if (!lua_isnumber(L, 1)) return 0;
 			double hl = lua_tonumber(L, 1);
 
-			return VestivizPipeline::addSimpleSIF_lua<V3, V3, DIPW_point<S>>(
+			return VestivizPipeline::addAction_lua<1>(
 				L,
-				PFAB<S, V3, V3>(new ExpDecayFilterAction<S, V3, CircBufL>(hl)), 
+				PFAB(new ExpDecayFilterAction<PIB_Wrapper, S, V3>(hl)),
 				1);
 		}
 		catch (...) {/*TODO logging*/ }
 		return 0;
 	}
 
-	//args: {1=,2=,...,24 = }, leaf index
-	// return leafIndex, inputIndex = nil
+	// Args: {1=,2=,...,24 = }, filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
 	static int l_MatMultFilterPointToWOff(lua_State* L) {
 		try{
 			std::array<S, 24> arr;
 			if (!ReadArray<24>(L,1, arr)) return 0;
 			M8x3 m = M8x3(arr);
 
-			return VestivizPipeline::addSimpleSIF_lua<V3, V8, DIPW_point<S>>(
+			return VestivizPipeline::addAction_lua<1>(
 				L,
-				PFAB<S, V3, V8>(new StatMatMultFilterAction<S, V3, M8x3, V8, CircBufL>(std::move(m))), 
+				PFAB(new StatMatMultFilterAction<PIB_Wrapper, S, V3, M8x3, V8>(std::move(m))),
 				1);
 		}
 		catch (...) {/*TODO logging*/ }
 		return 0;
 	}
 
-	//args:  leaf index, buffer size
-	// return leafIndex, inputIndex = nil
+	// Args: filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
 	static int l_SimpleDiffFilterXY(lua_State* L) {
 		try{
-			return VestivizPipeline::addBufferedSIF_lua<V6, V6, DIPW_xy<S>>(
+			return VestivizPipeline::addAction_lua<1>(
 				L,
-				PFAB<S, V6, V6>(new SimpleDiffFilterAction<S, V6, CircBufL>()), 
+				PFAB(new SimpleDiffFilterAction<PIB_Wrapper, S, V6>()),
 				0);
 		}
 		catch (...) {/*TODO logging*/ }
 		return 0;
 	}
 
-	//args:  leaf index, buffer size
-	// return leafIndex, inputIndex = nil
+	// Args: filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
 	static int l_SimpleDiffFilterPoint(lua_State* L) {
 		try{
-			return VestivizPipeline::addBufferedSIF_lua<V3, V3, DIPW_point<S>>(
+			return VestivizPipeline::addAction_lua<1>(
 				L,
-				PFAB<S, V3, V3>(new SimpleDiffFilterAction<S, V3, CircBufL>()), 
+				PFAB(new SimpleDiffFilterAction<PIB_Wrapper, S, V3>()),
 				0);
 		}
 		catch (...) {/*TODO logging*/ }
 		return 0;
 	}
 
-	//args:{{<xtuple>},{<ytuple>},{<ztuple>} } ,leaf index1, leaf index2
-	// return leafIndex, inputIndex1 = nil, inputIndex2 = nil
+	// Args: {{<xtuple>},{<ytuple>},{<ztuple>} } , filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
 	static int l_DynMatMultPickFilterXYtoPoint(lua_State* L) {
 		try{
 			std::array<std::tuple<std::size_t, std::size_t>, 3> m;
 			if (!ReadTupleArray<3>(L, 1, m)) return 0;
-			return VestivizPipeline::addSimpleDIF_lua<V6, M3, V3, DIPW_xy<S>, DIPW_frame<S>>(
+			return VestivizPipeline::addAction_lua<2>(
 				L,
-				PDFAB<S, V6, M3, V3>(new DynMatMultPickFilterAction<S, S, 3, 3, 6, 3, CircBufL, CircBufL>(std::move(m))),
+				PFAB(new DynMatMultPickFilterAction<PIB_Wrapper, S, S, 3, 3, 6, 3>(std::move(m))),
 				1);
 		}
 		catch (...) {/*TODO logging*/ }
 		return 0;
 	}
 
-	//args: coeff1,coeff2, leaf index1, leaf index2
-	// return leafIndex, inputIndex1 = nil, inputIndex2 = nil
+	// Args: coeff1,coeff2,  filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
 	static int l_LinCombFilterWOff(lua_State* L) {
 		try{
 			if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2)) return 0;
 			double coeff1 = lua_tonumber(L, 1);
 			double coeff2 = lua_tonumber(L, 2);
 
-			return VestivizPipeline::addSimpleDIF_lua<V8, V8, V8, DIPW_woff<S>, DIPW_woff<S>>(
+			return VestivizPipeline::addAction_lua<2>(
 				L,
-				PDFAB<S, V8, V8, V8>(new LinCombFilterAction<S, V8, CircBufL>(coeff1, coeff2)),
+				PFAB(new LinCombFilterAction<PIB_Wrapper, S, V8>(coeff1, coeff2)),
 				2);
 		}
 		catch (...) {/*TODO logging*/ }
 		return 0;
 	}
 
-	//args: {w = {top= ...,,,}, off ={top=...,,,}}, leaf index
-	// return leafIndex, inputIndex = nil
+	// Args: {w = {top= ...,,,}, off ={top=...,,,}}, filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
 	static int l_QuickCompressFilterWOff(lua_State* L) {
 		try {
 			V8 x;
 			if (!ReadWOff(L, 1, x)) return 0;
-			return VestivizPipeline::addSimpleSIF_lua<V8, V8, DIPW_woff<S>>(
+			return VestivizPipeline::addAction_lua<1>(
 				L,
-				PFAB<S, V8, V8>(new QuickCompressFilterAction<S, V8, CircBufL>(x)),
+				PFAB(new QuickCompressFilterAction<PIB_Wrapper, S, V8>(x)),
 				1);
 		}
 		catch (...) {/*TODO logging*/ }
 		return 0;
 	}
 
-	//args: {1 = .., 2= ...,..}, leaf index, buffer size
-	// return leafIndex, inputIndex = nil
+	// Args: {1 = .., 2= ...,..}, filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
 	static int l_ConvolveOutputFilterWOff(lua_State* L) {
 		try{
 			std::vector<S> x;
 			if (!ReadVector(L, 1, x)) return 0;
-			return  VestivizPipeline::addBufferedSIF_lua<V8, V8, DIPW_woff<S>>(
+			return  VestivizPipeline::addAction_lua<1>(
 				L,
-				PFAB<S, V8, V8>(new ConvolveFilterAction<S, V8, CircBufL>(std::move(x))),
+				PFAB(new ConvolveFilterAction<PIB_Wrapper, S, V8>(std::move(x))),
 				1);
 		}
 		catch (...) {/*TODO logging*/ }
 		return 0;
+	}
+
+	// Args: filterHandle, leaf handles to connect to inputs...
+	//return: new output leaf handle, new input handles...
+	static int l_ConnectFilter(lua_State* L) {
+
+		VestivizPipeline* p = GetPipelineUpVal(L);
+		if (p == nullptr) return 0;
+
+		int inputsToConnect = 0;
+
+		if (!lua_isnumber(L, 1)) return 0;
+
+		int filterConstructionHandle = lua_tointeger(L, 1);
+
+		if (!p->TryGetFilterInputCount(filterConstructionHandle, inputsToConnect)) return 0;
+
+		std::vector<std::size_t> leafHandlesForInputs(inputsToConnect, NEW_INPUT);
+
+		for (int i = 0; i < inputsToConnect; i++) {
+			if (lua_isnumber(L, i + 2)) {
+				leafHandlesForInputs[i] = lua_tonumber(L, i + 2);
+			}
+		}
+
+		std::size_t newLeafHandle = 0;
+		std::vector<std::size_t> newInputHandles;
+
+		if (!p->TryConnectFilter(leafHandlesForInputs, filterConstructionHandle, newLeafHandle, newInputHandles)) return 0;
+
+
+		int pushCount = 0;
+
+		lua_pushnumber(L, newLeafHandle);
+		pushCount++;
+
+		for (auto it = newInputHandles.cbegin(); it != newInputHandles.cend(); it++) {
+			p->mLuaInputs.push_back(std::shared_ptr<DatumInputPostboxWrapper>(
+				new WrappedT2Postbox(PIB_Wrapper::Unwrap<TimedDatum<S, Tin2>>(p->getInput(*it)))));
+			lua_pushnumber(L, p->mLuaInputs.size() - 1);
+			pushCount++;
+		}
+
+		return pushCount;
 	}
 
 	// args: inputIndex, timed datum
@@ -580,7 +491,16 @@ public:
 		return 0;
 	}
 
+	static int l_Validate(lua_State* L) {
 
+		VestivizPipeline<double>* p = GetPipelineUpVal(L);
+		if (p != nullptr && p->mErrors != nullptr) {
+			if (!p->validate()) lua_pushboolean(L, 0);
+			else lua_pushboolean(L, 1);
+			return 1;
+		}
+		return 0;
+	}
 	static int l_Pipeline_New(lua_State* L) {
 
 		std::shared_ptr<ErrorStack> log(new ErrorStack(5));
@@ -655,6 +575,12 @@ public:
 		lua_pushlightuserdata(L, pNew);
 		lua_pushcclosure(L, l_MakeXYOutput, 1);
 		lua_setfield(L, -2, "makeXYOutput");
+		lua_pushlightuserdata(L, pNew);
+		lua_pushcclosure(L, l_ConnectFilter, 1);
+		lua_setfield(L, -2, "connectFilter");
+		lua_pushlightuserdata(L, pNew);
+		lua_pushcclosure(L, l_Validate, 1);
+		lua_setfield(L, -2, "validate");
 		return 1;
 	}
 };

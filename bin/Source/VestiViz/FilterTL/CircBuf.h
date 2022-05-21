@@ -30,6 +30,15 @@ class CircBufL {
 public:
 	explicit CircBufL(std::size_t capacity) : mCapacity(capacity) {}
 
+	CircBufL() = default;
+	/*CircBufL& operator= (const CircBufL& other) {
+		mCapacity = other.mCapacity;
+		mBuf = other.mBuf;
+		return *this;
+	}*/
+
+	CircBufL(const CircBufL & other) = default;
+
 	void push_back(const T &value) {
 		mBuf.push_back(value);
 		trim();

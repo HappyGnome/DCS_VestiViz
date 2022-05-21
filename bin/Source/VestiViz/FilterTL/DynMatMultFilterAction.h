@@ -21,27 +21,23 @@ template <
 class DynMatMultFilterAction : public FilterActionWithInputBase <
 			IOWrapper,
 			TimedDatum<S, Tout>,
-			TimedDatum<S, Tin1>,	
-			CircBufL, 
-			std::allocator<TimedDatum<S, Tin1>>,
-			TimedDatum<S, Tin2>,
 			CircBufL,
-			std::allocator<TimedDatum<S, Tin2>>> {
+			std::allocator,
+			TimedDatum<S, Tin1>,				
+			TimedDatum<S, Tin2>> {
 
 	using FAWIB = FilterActionWithInputBase <
 		IOWrapper,
 		TimedDatum<S, Tout>,
+		CircBufL,
+		std::allocator,
 		TimedDatum<S, Tin1>,
-		CircBufL,
-		std::allocator<TimedDatum<S, Tin1>>,
-		TimedDatum<S, Tin2>,
-		CircBufL,
-		std::allocator<TimedDatum<S, Tin2>>>;
+		TimedDatum<S, Tin2>>;
 	using FAWIB::getInputData;
 public:
 	explicit DynMatMultFilterAction() :
 		FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, Tin1>, CircBufL>>(new SimplePostbox< TimedDatum<S, Tin1>>()),
-			std::shared_ptr<PostboxBase<TimedDatum<S, Tin2>, CircBufL>>(new SimplePostbox< TimedDatum<S, Tin2>>())) {}
+			  std::shared_ptr<PostboxBase<TimedDatum<S, Tin2>, CircBufL>>(new SimplePostbox< TimedDatum<S, Tin2>>())) {}
 
 	TimedDatum<S, Tout> actOn() override {
 		

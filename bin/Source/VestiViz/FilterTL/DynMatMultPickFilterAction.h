@@ -24,25 +24,23 @@ template <
 	class DynMatMultPickFilterAction : public FilterActionWithInputBase <
 												IOWrapper,
 												TimedDatum<S, DatumArr<S, V, L>>,
-												TimedDatum<S, DatumArr<S, V, K>>,
-												CircBufL, std::allocator<TimedDatum<S, TimedDatum<S, DatumArr<S, V, K>>>>,
-												TimedDatum<S, DatumMatrix<S, M, N>>,
-												CircBufL, std::allocator<TimedDatum<S, TimedDatum<S, DatumMatrix<S, M, N>>>>> {
+												CircBufL, std::allocator,
+												TimedDatum<S, DatumArr<S, V, K>>,												
+												TimedDatum<S, DatumMatrix<S, M, N>>> {
 
 	std::array<std::tuple<std::size_t,std::size_t>, L> mPicks;
 
 	using FAWIB = FilterActionWithInputBase <
 		IOWrapper,
 		TimedDatum<S, DatumArr<S, V, L>>,
-		TimedDatum<S, DatumArr<S, V, K>>,
-		CircBufL, std::allocator<TimedDatum<S, TimedDatum<S, DatumArr<S, V, K>>>>,
-		TimedDatum<S, DatumMatrix<S, M, N>>,
-		CircBufL, std::allocator<TimedDatum<S, TimedDatum<S, DatumMatrix<S, M, N>>>>>;
+		CircBufL, std::allocator,
+		TimedDatum<S, DatumArr<S, V, K>>,		
+		TimedDatum<S, DatumMatrix<S, M, N>>>;
 	using FAWIB::getInputData;
 	public:
 		explicit DynMatMultPickFilterAction(std::array<std::tuple<std::size_t, std::size_t>, L>&& picks) :
-			FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, Tin1>, CircBufL>>(new SimplePostbox< TimedDatum<S, DatumArr<S, V, K>>>()),
-				std::shared_ptr<PostboxBase<TimedDatum<S, Tin2>, CircBufL>>(new SimplePostbox< TimedDatum<S, DatumMatrix<S, M, N>>>())),
+			FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, DatumArr<S, V, K>>, CircBufL>>(new SimplePostbox< TimedDatum<S, DatumArr<S, V, K>>>()),
+				std::shared_ptr<PostboxBase< TimedDatum<S, DatumMatrix<S, M, N>>, CircBufL>>(new SimplePostbox< TimedDatum<S, DatumMatrix<S, M, N>>>())),
 			mPicks(picks) {};
 
 		TimedDatum<S, DatumArr<S,V,L>> actOn() override {
@@ -50,8 +48,8 @@ template <
 			CircBufL<TimedDatum<S, DatumArr<S, V, K>>> vec;
 			CircBufL<TimedDatum<S, DatumMatrix<S, M, N>>> matrix;
 
-			getInputData<L1<TimedDatum<S, Tin1>, LAlloc1>, 0>(vec);
-			getInputData<L2<TimedDatum<S, Tin2>, LAlloc2>, 1>(matrix);
+			getInputData<CircBufL<TimedDatum<S, DatumArr<S, V, K>>, std::allocator<TimedDatum<S, DatumArr<S, V, K>>>>, 0>(vec);
+			getInputData<CircBufL<TimedDatum<S, DatumMatrix<S, M, N>>, std::allocator<TimedDatum<S, DatumMatrix<S, M, N>>>>, 1>(matrix);
 
 			TimedDatum<S, DatumArr<S, V, L>> ret;
 	

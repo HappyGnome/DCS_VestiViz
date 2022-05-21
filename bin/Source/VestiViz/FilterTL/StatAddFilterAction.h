@@ -16,10 +16,10 @@ template <
 	typename IOWrapper,
 	typename S,
 	typename T>
-class StatAddFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>> {
+class StatAddFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, CircBufL, std::allocator, TimedDatum<S, T>> {
 	T mAdd;
 
-	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>>;
+	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, CircBufL, std::allocator, TimedDatum<S, T>>;
 	using FAWIB::getInputData;
 public:
 	explicit StatAddFilterAction(T&& add) : 

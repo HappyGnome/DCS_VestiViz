@@ -13,14 +13,15 @@
 #include "FilterActionWithInputBase.h"
 
 template <
+	typename IOWrapper,
 	typename S,
 	typename T>
 class LinCombFilterAction : public FilterActionWithInputBase<
+									IOWrapper,
 									TimedDatum<S, T>,
+									CircBufL, std::allocator,
 									TimedDatum<S, T>,	
-									CircBufL, std::allocator<TimedDatum<S, T>>,
-									TimedDatum<S, T>,
-									CircBufL, std::allocator<TimedDatum<S, T>>> {
+									TimedDatum<S, T>> {
 
 	S mScaleX;
 	S mScaleY;
@@ -28,17 +29,18 @@ class LinCombFilterAction : public FilterActionWithInputBase<
 	S mScaleTY;
 
 	using FAWIB = FilterActionWithInputBase<
+		IOWrapper,
+		TimedDatum<S, T>,		
+		CircBufL, std::allocator,
 		TimedDatum<S, T>,
-		TimedDatum<S, T>,
-		CircBufL, std::allocator<TimedDatum<S, T>>,
-		TimedDatum<S, T>,
-		CircBufL, std::allocator<TimedDatum<S, T>>>;
+		TimedDatum<S, T>>;
 	using FAWIB::getInputData;
 public:
 	LinCombFilterAction() = default;
 
 	explicit LinCombFilterAction(S scaleX, S scaleY) :
-		FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, T>, CircBufL>>(new SimplePostbox< TimedDatum<S, T>>())),
+		FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, T>, CircBufL>>(new SimplePostbox< TimedDatum<S, T>>()),
+			  std::shared_ptr<PostboxBase<TimedDatum<S, T>, CircBufL>>(new SimplePostbox< TimedDatum<S, T>>())),
 		mScaleX(scaleX),
 		mScaleY(scaleY) {
 

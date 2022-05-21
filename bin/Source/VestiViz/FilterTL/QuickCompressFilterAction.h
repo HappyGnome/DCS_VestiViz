@@ -14,10 +14,10 @@
 #include "FilterActionWithInputBase.h"
 
 template <typename IOWrapper, typename S, typename T>
-class QuickCompressFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>> {
+class QuickCompressFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, CircBufL, std::allocator, TimedDatum<S, T>> {
 	T mCalib;
 
-	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>>;
+	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, CircBufL, std::allocator, TimedDatum<S, T>>;
 	using FAWIB::getInputData;
 public:
 	explicit QuickCompressFilterAction(T calibration) : 

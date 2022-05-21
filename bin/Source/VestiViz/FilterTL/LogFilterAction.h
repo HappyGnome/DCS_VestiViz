@@ -10,10 +10,10 @@
 #include "SimplePostbox.h"
 
 template <typename IOWrapper, typename S, typename T>
-class LogFilterAction :public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>> {
+class LogFilterAction :public FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, CircBufL, std::allocator, TimedDatum<S, T>> {
 	std::string mPrefix;
 
-	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>>;
+	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, CircBufL, std::allocator, TimedDatum<S, T>>;
 	using FAWIB::getInputData;
 public:
 	explicit LogFilterAction(const std::string& prefix) :

@@ -10,27 +10,28 @@
 #include "PostboxBase.h"
 
 
-template <typename IOWrapper, typename Tout, typename Tin, template<typename, typename> typename L, typename LAlloc, typename ...Args>
-class FilterActionWithInputBase : public FilterActionWithInputBase<IOWrapper,Tout, Args...> {
-	std::shared_ptr<PostboxBase<Tin, L, LAlloc>> mInput;
+template <typename IOWrapper, typename Tout, template<typename, typename> typename L, template<typename> typename LAlloc, typename Tin, typename ...Args>
+class FilterActionWithInputBase : public FilterActionWithInputBase<IOWrapper,Tout, L, LAlloc, Args...> {
+	std::shared_ptr<PostboxBase<Tin, L, LAlloc<Tin>>> mInput;
 protected:
 	template<typename T, std::size_t N> 
 	bool getInputData(T& dataOut) {
-		return typename FilterActionWithInputBase<IOWrapper, Tout, Args...>::template getInputData<T, N - 1>(dataOut);
+		return typename FilterActionWithInputBase<IOWrapper, Tout, L, LAlloc, Args...>::template getInputData<T, N - 1>(dataOut);
 	}
 	template<>
-	bool getInputData<L<Tin,LAlloc>,0>(L<Tin, LAlloc>& dataOut) {
+	bool getInputData<L<Tin,LAlloc<Tin>>,0>(L<Tin, LAlloc<Tin>>& dataOut) {
 		dataOut = mInput->output();
 		return true;
 	}
 
 	bool waitForPost() {
-		return mInput->waitForPost() && FilterActionWithInputBase<IOWrapper, Tout, Args...>::waitForPost();
+		return mInput->waitForPost() && FilterActionWithInputBase<IOWrapper, Tout, L, LAlloc, Args...>::waitForPost();
 	}
 
-	using FilterActionWithInputBase<IOWrapper, Tout, Args...>::actOnAndPost;
+	using FilterActionWithInputBase<IOWrapper, Tout, L, LAlloc, Args...>::actOnAndPost;
 public:
-	explicit FilterActionWithInputBase(const std::shared_ptr<PostboxBase<Tin, L, LAlloc>>& input, Args... rest) : FilterActionWithInputBase <IOWrapper, Tout, Args...>(rest...), mInput(input) {}
+	explicit FilterActionWithInputBase(const std::shared_ptr<PostboxBase<Tin, L, LAlloc<Tin>>>& input, const std::shared_ptr<PostboxBase<Args, L, LAlloc<Args>>>& ... rest) :
+		FilterActionWithInputBase <IOWrapper, Tout, L, LAlloc, Args...>(rest...), mInput(input) {}
 
 	bool action() override {
 		if (!waitForPost()) return false;
@@ -39,12 +40,12 @@ public:
 	}
 
 	constexpr std::size_t inputCount() override {
-		return 1 + FilterActionWithInputBase <IOWrapper, Tout, Args...>::inputCount();
+		return 1 + FilterActionWithInputBase <IOWrapper, Tout, L, LAlloc, Args...>::inputCount();
 	}
 
 	typename IOWrapper::Wrapped getInput(int index, bool enableBlocking = true) const override {
 		if (index < 0)return nullptr;
-		else if (index > 0) return FilterActionWithInputBase <IOWrapper, Tout, Args...>::getInput(index, enableBlocking);
+		else if (index > 0) return FilterActionWithInputBase <IOWrapper, Tout, L, LAlloc, Args...>::getInput(index, enableBlocking);
 		else if (mInput != nullptr) mInput->setEnableWait(enableBlocking);
 		return IOWrapper::template Wrap<Tin>(mInput);
 	}
@@ -53,8 +54,8 @@ public:
 
 // Recursion base -------------------------------------------------------------------------------------------------------------
 
-template <typename IOWrapper, typename Tout, typename Tin, template<typename, typename> typename L, typename LAlloc>
-class FilterActionWithInputBase : public FilterActionBase<IOWrapper> {
+template <typename IOWrapper, typename Tout, template<typename, typename> typename L, template<typename> typename LAlloc, typename Tin>
+class FilterActionWithInputBase<IOWrapper, Tout, L, LAlloc, Tin> : public FilterActionBase<IOWrapper> {
 
 	bool mBlockForOutput = false;
 
@@ -62,7 +63,7 @@ class FilterActionWithInputBase : public FilterActionBase<IOWrapper> {
 	std::shared_ptr<PostboxInputBase<Tout>> mOutputAwaited;//used only in processing thread, set only while holding mOutputMutex
 	std::mutex mOutputMutex;
 
-	std::shared_ptr<PostboxBase<Tin, L, LAlloc>> mInput;
+	std::shared_ptr<PostboxBase<Tin, L, LAlloc<Tin>>> mInput;
 protected:
 	virtual Tout actOn() = 0;
 
@@ -72,7 +73,7 @@ protected:
 	}
 
 	template<>
-	bool getInputData<L<Tin, LAlloc>, 0>(L<Tin, LAlloc>& dataOut) {
+	bool getInputData<L<Tin, LAlloc<Tin>>, 0>(L<Tin, LAlloc<Tin>>& dataOut) {
 		dataOut = mInput->output();
 		return true;
 	}
@@ -96,7 +97,7 @@ protected:
 	}
 
 public:
-	explicit FilterActionWithInputBase(const std::shared_ptr<PostboxBase<Tin, L, LAlloc>>& input) : mInput(input) {}
+	explicit FilterActionWithInputBase(const std::shared_ptr<PostboxBase<Tin, L, LAlloc<Tin>>>& input) : mInput(input) {}
 
 	bool action() override {
 		if (!waitForPost()) return false;
@@ -107,7 +108,10 @@ public:
 	constexpr std::size_t inputCount() override {
 		return 0;
 	}
-	typename IOWrapper::Wrapped getInput(int index, bool enableBlocking = true) const override { return nullptr; }
+	typename IOWrapper::Wrapped getInput(int index, bool enableBlocking = true) const override { 
+		if (index != 0)return nullptr;
+		else return IOWrapper::template Wrap<Tin>(mInput);
+	}
 
 	bool setOutput(typename IOWrapper::Wrapped&& wrappedInput) override {
 		auto unwrapped = IOWrapper::template Unwrap<Tout>(std::move(wrappedInput));

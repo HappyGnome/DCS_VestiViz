@@ -17,14 +17,14 @@ template <typename IOWrapper,
 	typename Tin, 
 	typename Tmat,
 	typename Tout> 
-class StatMatMultFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, Tin>, TimedDatum<S, Tout>, CircBufL, std::allocator<TimedDatum<S, T>>> {
+class StatMatMultFilterAction : public FilterActionWithInputBase<IOWrapper, TimedDatum<S, Tout>, CircBufL, std::allocator, TimedDatum<S, Tin>> {
 	Tmat mMat;
 
-	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, T>, TimedDatum<S, T>, CircBufL, std::allocator<TimedDatum<S, T>>>;
+	using FAWIB = FilterActionWithInputBase<IOWrapper, TimedDatum<S, Tout>, CircBufL, std::allocator, TimedDatum<S, Tin>>;
 	using FAWIB::getInputData;
 public:
 	explicit StatMatMultFilterAction(Tmat&& mat) :
-		FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, Tin>, CircBufL>>(new SimplePostbox< TimedDatum<S, Tin>>()))
+		FAWIB(std::shared_ptr<PostboxBase<TimedDatum<S, Tin>, CircBufL>>(new SimplePostbox< TimedDatum<S, Tin>>())),
 		mMat(std::move(mat)) {};
 
 	TimedDatum<S, Tout> actOn() override {
