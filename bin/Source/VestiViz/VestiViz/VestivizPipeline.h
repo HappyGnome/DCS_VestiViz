@@ -15,6 +15,7 @@
 #include "LinCombFilterAction.h"
 #include "LogFilterAction.h"
 #include "PipelineBase.h"
+#include "SignScaleFilterAction.h"
 #include "DatumMatrix.h"
 #include "PIB_Wrapper.h"
 #include "DatumInputPostboxes.h"
@@ -246,6 +247,22 @@ public:
 			return VestivizPipeline::addAction_lua<1>(
 				L,
 				PFAB(new QuickCompressFilterAction<PIB_Wrapper, S, V3>(V3(x[0], x[1], x[2]))),
+				1);
+		}
+		catch (...) {/*TODO logging*/ }
+		return 0;
+	}
+
+	// Args: {x,y,z}, filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
+	static int l_SignScaleFilterPoint(lua_State* L) {
+		try {
+			std::array<S, 3> x;
+			if (!ReadVec3(L, 1, x)) return 0;
+
+			return VestivizPipeline::addAction_lua<1>(
+				L,
+				PFAB(new SignScaleFilterAction<PIB_Wrapper, S, V3>(V3(x[0], x[1], x[2]))),
 				1);
 		}
 		catch (...) {/*TODO logging*/ }
@@ -615,6 +632,9 @@ public:
 		lua_pushlightuserdata(L, pNew);
 		lua_pushcclosure(L, l_ConvolveOutputFilterWOff, 1);
 		lua_setfield(L, -2, "convolveOutputFilterWOff");
+		lua_pushlightuserdata(L, pNew);
+		lua_pushcclosure(L, l_SignScaleFilterPoint, 1);
+		lua_setfield(L, -2, "signScaleFilterPoint");
 		lua_pushlightuserdata(L, pNew);
 		lua_pushcclosure(L, l_MakeWOffOutput, 1);
 		lua_setfield(L, -2, "makeWOffOutput");

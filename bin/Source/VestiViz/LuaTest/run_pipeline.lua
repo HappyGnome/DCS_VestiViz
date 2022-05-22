@@ -65,6 +65,8 @@ foo = function()
 
 	print(innerleaf1..":"..filter1);
 	filter1, innerleaf1 = pipeline.staticAddFilterPoint({x = 0, y = -9.81, z = 0},filter1, innerleaf1);
+	filter1, innerleaf1 = pipeline.signScaleFilterPoint({x = 0, y = 2, z = 3},filter1, innerleaf1);
+	
 	filter1, innerleaf1 = pipeline.quickCompressFilterPoint(config.acclims,filter1, innerleaf1);
 	filter1, innerleaf1 = pipeline.expDecayFilterPoint(config.halflife,filter1, innerleaf1);
 	filter1, innerleaf1 = pipeline.matMultFilterPointToWOff({

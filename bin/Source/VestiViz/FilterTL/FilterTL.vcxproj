@@ -201,6 +201,7 @@
     <ClInclude Include="DynMatMultFilterAction.h" />
     <ClInclude Include="LinCombFilterAction.h" />
     <ClInclude Include="FilterActionWithInputBase.h" />
+    <ClInclude Include="SignScaleFilterAction.h" />
     <ClInclude Include="StatAddFilterAction.h" />
     <ClInclude Include="TemplateInterchangeWrapper.h" />
     <ClInclude Include="QuickCompressFilterAction.h" />

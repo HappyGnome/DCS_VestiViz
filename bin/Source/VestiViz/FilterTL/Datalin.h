@@ -31,6 +31,21 @@ public:
 	static T linEq(T& x, const T& y, const S scaleY) {
 		return x.linEq(y, scaleY);
 	}
+
+
+	/********************************
+	* SignScale - Generic.
+	*********************************/
+	static T signScale(const T& x, const T& y) {
+		return T::signScale(x, y);
+	}
+
+	/********************************
+	* SignScaleEq - Generic.
+	*********************************/
+	static T signScaleEq(T& x, const T& y) {
+		return x.signScaleEq(y);
+	}
 };
 
 template <typename S>
@@ -60,6 +75,22 @@ public:
 	}
 	static S& linEq(S& x, S y, S scaleY) {
 		x += y * scaleY;
+		return x;
+	}
+
+	/********************************
+	* SignScale
+	*********************************/
+	static S signScale(const S& x, const S& y) {
+		if (x >= 0)return x;
+		else return x * y;
+	}
+
+	/********************************
+	* SignScaleEq
+	*********************************/
+	static S signScaleEq(S& x, const S& y) {
+		if (x < 0)  x *= y;
 		return x;
 	}
 

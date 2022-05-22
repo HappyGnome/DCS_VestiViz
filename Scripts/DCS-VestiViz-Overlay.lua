@@ -442,15 +442,15 @@ VestiViz.initPipeline = function()
 	local a = VestiViz.config.accFactor
 	local r = VestiViz.config.rotFactor
 
-	local frameinput1, frameinput2;
-	local leaf1, input1 = VestiViz._Pipeline.simpleDiffFilterPoint(nil,2);
-	leaf1 = VestiViz._Pipeline.staticAddFilterPoint({x = 0, y = 9.81, z = 0},leaf1);
-	leaf1, frameinput1 = VestiViz._Pipeline.dynMatMultFilterPoint(leaf1,nil);
-	print(leaf1..":"..frameinput1);
-	leaf1 = VestiViz._Pipeline.staticAddFilterPoint({x = 0, y = -9.81, z = 0},leaf1);
-	leaf1 = VestiViz._Pipeline.quickCompressFilterPoint(VestiViz.config.acclims,leaf1);
-	leaf1 = VestiViz._Pipeline.expDecayFilterPoint(VestiViz.config.halflife,leaf1);
-	leaf1 = VestiViz._Pipeline.matMultFilterPointToWOff({
+	local filter1, innerleaf1 = VestiViz._Pipeline.simpleDiffFilterPoint();
+	filter1, innerleaf1 = VestiViz._Pipeline.staticAddFilterPoint({x = 0, y = 9.81, z = 0}, filter1, innerleaf1);
+	filter1, innerleaf1 = VestiViz._Pipeline.dynMatMultFilterPoint(filter1, innerleaf1,nil);
+
+	filter1, innerleaf1 = VestiViz._Pipeline.staticAddFilterPoint({x = 0, y = -9.81, z = 0},filter1, innerleaf1);
+	filter1, innerleaf1 = VestiViz._Pipeline.signScaleFilterPoint({x = 0, y = 2, z = 0},filter1, innerleaf1);
+	filter1, innerleaf1 = VestiViz._Pipeline.quickCompressFilterPoint(VestiViz.config.acclims,filter1, innerleaf1);
+	filter1, innerleaf1 = VestiViz._Pipeline.expDecayFilterPoint(VestiViz.config.halflife,filter1, innerleaf1);
+	filter1, innerleaf1 = VestiViz._Pipeline.matMultFilterPointToWOff({
 					-a, -a, 0.0,--T width
 					-a, 0.0, -a,--R width
 					-a, a, 0.0,--B width
@@ -459,16 +459,22 @@ VestiViz.initPipeline = function()
 					s, 0.0, s,--R
 					0.0, 0.0, -s,--B
 					s, 0.0, -s},
-					leaf1);
-	local leaf2, input2 = VestiViz._Pipeline.simpleDiffFilterXY(nil,2);
-	leaf2, frameinput2 = VestiViz._Pipeline.dynMatMultPickFilterXYtoPoint({
+					filter1, innerleaf1);
+
+	local outputHandle1, inputHandle1, inputHandle2 = VestiViz._Pipeline.connectFilter(filter1)
+
+	local inputVel = VestiViz._Pipeline.makePointInput(inputHandle1);
+    local inputFrame1 = VestiViz._Pipeline.makeFrameInput(inputHandle2);
+
+	local filter2, innerleaf2 = VestiViz._Pipeline.simpleDiffFilterXY();
+	filter2, innerleaf2 = VestiViz._Pipeline.dynMatMultPickFilterXYtoPoint({
 					{2,1}, --x-axis rot
 					{2,0}, --negative y-axis rot
 					{1,0}} --z-axis rot
-					,leaf2);
-	leaf2 = VestiViz._Pipeline.quickCompressFilterPoint(VestiViz.config.rotlims,leaf2);
-	leaf2 = VestiViz._Pipeline.expDecayFilterPoint(VestiViz.config.halflife,leaf2);
-	leaf2 = VestiViz._Pipeline.matMultFilterPointToWOff(
+					,filter2, innerleaf2);
+	filter2, innerleaf2 = VestiViz._Pipeline.quickCompressFilterPoint(VestiViz.config.rotlims,filter2, innerleaf2);
+	filter2, innerleaf2 = VestiViz._Pipeline.expDecayFilterPoint(VestiViz.config.halflife,filter2, innerleaf2);
+	filter2, innerleaf2 = VestiViz._Pipeline.matMultFilterPointToWOff(
 					{0.0, 0.0, 0.0,--T width
 					0.0, 0.0, 0.0,--R
 					0.0, 0.0, 0.0,--B
@@ -477,16 +483,30 @@ VestiViz.initPipeline = function()
 					-r, 0.0, r,--R
 					r, -r, 0.0,--B
 					r, 0.0, r},
-					leaf2);
-	local leaf3 = VestiViz._Pipeline.linCombFilterWOff(2,2,leaf1,leaf2);
-	leaf3 = VestiViz._Pipeline.quickCompressFilterWOff({w = {top = 1,right = 1,bottom = 1,left = 1}, off = {top = 1,right = 1,bottom = 1,left = 1}},leaf3);
-	leaf3 = VestiViz._Pipeline.convolveOutputFilterWOff({0.25,0.5,0.25},leaf3,3);
-	local output = VestiViz._Pipeline.makeWOffOutput(leaf3);
+					filter2, innerleaf2);
 
-	VestiViz._PipelineData = {inputv = input1,
-							  inputxy = input2,
-							  inputframe1 = frameinput1,
-							  inputframe2 = frameinput2,
+	local outputHandle2, inputHandle3, inputHandle4 = VestiViz._Pipeline.connectFilter(filter2)
+
+	local inputXY = VestiViz._Pipeline.makeXYInput(inputHandle3);
+    local inputFrame2 = VestiViz._Pipeline.makeFrameInput(inputHandle4);
+	--
+	local filter3, innerleaf3 = VestiViz._Pipeline.linCombFilterWOff(2,2);
+	filter3, innerleaf3 = VestiViz._Pipeline.quickCompressFilterWOff({w = {top = 1,right = 1,bottom = 1,left = 1}, off = {top = 1,right = 1,bottom = 1,left = 1}},filter3, innerleaf3);
+	filter3, innerleaf3 = VestiViz._Pipeline.convolveOutputFilterWOff({0.25,0.5,0.25},filter3, innerleaf3);
+
+	local outputHandle3 = VestiViz._Pipeline.connectFilter(filter3, outputHandle1, outputHandle2)
+	print(outputHandle3)
+
+	local output = VestiViz._Pipeline.makeWOffOutput(outputHandle3);
+
+	if VestiViz._Pipeline.validate() ~= true then
+		VestiViz.log("Pipeline validation failed!");
+	end
+
+	VestiViz._PipelineData = {inputv = inputVel,
+							  inputxy = inputXY,
+							  inputframe1 = inputFrame1,
+							  inputframe2 = inputFrame2,
 							  outputWOff = output}
 	VestiViz.log("Pipeline configured. Handles:");
 	VestiViz.log(VestiViz._PipelineData);

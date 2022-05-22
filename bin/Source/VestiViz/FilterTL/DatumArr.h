@@ -142,6 +142,23 @@ public:
 		}
 		return *this;
 	}
+
+	DatumArr& signScaleEq(const DatumArr<S, V, N>& y) {
+		for (int i = 0; i < N; i++) {
+			Datalin<S, V>::signScaleEq(mVec[i], y.mVec[i]);
+		}
+		return *this;
+	}
+
+
+	static DatumArr signScale(const DatumArr<S, V, N>& x, const DatumArr<S, V, N>& y) {
+		DatumArr<S, V, N> ret;
+
+		for (int i = 0; i < N; i++) {
+			ret.mVec[i] = Datalin<S, V>::signScale(x.mVec[i], y.mVec[i]);
+		}
+		return ret;
+	}
 };
 
 template<typename S>

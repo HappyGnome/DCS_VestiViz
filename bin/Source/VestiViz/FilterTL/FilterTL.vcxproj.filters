@@ -129,6 +129,9 @@
     <ClInclude Include="FilterActionWithInputBase.h">
       <Filter>Header Files\FilterActions\Base</Filter>
     </ClInclude>
+    <ClInclude Include="SignScaleFilterAction.h">
+      <Filter>Header Files\FilterActions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ErrorStack.cpp">
