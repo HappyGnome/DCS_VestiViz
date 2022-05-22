@@ -59,9 +59,8 @@ foo = function()
 	local a = config.accFactor
 	local r = config.rotFactor
 
-	--local frameinput1, frameinput2;
 	local filter1, innerleaf1 = pipeline.simpleDiffFilterPoint();
-	--[[filter1, innerleaf1 = pipeline.staticAddFilterPoint({x = 0, y = 9.81, z = 0}, filter1, innerleaf1);
+	filter1, innerleaf1 = pipeline.staticAddFilterPoint({x = 0, y = 9.81, z = 0}, filter1, innerleaf1);
 	filter1, innerleaf1 = pipeline.dynMatMultFilterPoint(filter1, innerleaf1,nil);
 
 	print(innerleaf1..":"..filter1);
@@ -77,19 +76,22 @@ foo = function()
 					s, 0.0, s,--R
 					0.0, 0.0, -s,--B
 					s, 0.0, -s},
-					filter1, innerleaf1);]]
+					filter1, innerleaf1);
 
 	local outputHandle1, inputHandle1, inputHandle2 = pipeline.connectFilter(filter1)
+	print(inputHandle2)
+	local inputPoint = pipeline.makePointInput(inputHandle1);
+  local inputFrame1 = pipeline.makeFrameInput(inputHandle2);
 
-	--[[local leaf2, input2 = pipeline.simpleDiffFilterXY(nil,2);
-	leaf2, frameinput2 = pipeline.dynMatMultPickFilterXYtoPoint({
+	local filter2, innerleaf2 = pipeline.simpleDiffFilterXY();
+	filter2, innerleaf2 = pipeline.dynMatMultPickFilterXYtoPoint({
 					{2,1}, --x-axis rot
 					{2,0}, --negative y-axis rot
 					{1,0}} --z-axis rot
-					,leaf2);
-	leaf2 = pipeline.quickCompressFilterPoint(config.rotlims,leaf2);
-	leaf2 = pipeline.expDecayFilterPoint(config.halflife,leaf2);
-	leaf2 = pipeline.matMultFilterPointToWOff(
+					,filter2, innerleaf2);
+	filter2, innerleaf2 = pipeline.quickCompressFilterPoint(config.rotlims,filter2, innerleaf2);
+	filter2, innerleaf2 = pipeline.expDecayFilterPoint(config.halflife,filter2, innerleaf2);
+	filter2, innerleaf2 = pipeline.matMultFilterPointToWOff(
 					{0.0, 0.0, 0.0,--T width
 					0.0, 0.0, 0.0,--R
 					0.0, 0.0, 0.0,--B
@@ -98,13 +100,21 @@ foo = function()
 					-r, 0.0, r,--R
 					r, -r, 0.0,--B
 					r, 0.0, r},
-					leaf2);
-	local leaf3 = pipeline.linCombFilterWOff(2,2,leaf1,leaf2);
-	leaf3 = pipeline.quickCompressFilterWOff({w = {top = 1,right = 1,bottom = 1,left = 1}, off = {top = 1,right = 1,bottom = 1,left = 1}},leaf3);
-	leaf3 = pipeline.convolveOutputFilterWOff({0.25,0.5,0.25},leaf3,3);
-	local output = pipeline.makeWOffOutput(leaf3);--]]
+					filter2, innerleaf2);
 
-	local output = pipeline.makePointOutput(outputHandle1);
+	local outputHandle2, inputHandle3, inputHandle4 = pipeline.connectFilter(filter2)
+	print(inputHandle4)
+	local inputXY = pipeline.makeXYInput(inputHandle3);
+  local inputFrame2 = pipeline.makeFrameInput(inputHandle4);
+	--
+	local filter3, innerleaf3 = pipeline.linCombFilterWOff(2,2);
+	filter3, innerleaf3 = pipeline.quickCompressFilterWOff({w = {top = 1,right = 1,bottom = 1,left = 1}, off = {top = 1,right = 1,bottom = 1,left = 1}},filter3, innerleaf3);
+	filter3, innerleaf3 = pipeline.convolveOutputFilterWOff({0.25,0.5,0.25},filter3, innerleaf3);
+
+	local outputHandle3 = pipeline.connectFilter(filter3, outputHandle1, outputHandle2)
+	print(outputHandle3)
+
+	local output = pipeline.makeWOffOutput(outputHandle3);
 
 	if pipeline.validate() then
 		print("Validation pass" );
@@ -121,15 +131,15 @@ foo = function()
 	end
 	pipeline.start();
 	for i=1,10,1 do
-		pipeline.addDatum(inputHandle1,i, {p = {x = 0, y= 0, z = i}});
-		--[[pipeline.addDatum(input2,i, {x = {x = 1.1, y= 2.1, z = 3.1},
-																 y = {x = 1.2, y= 2.2, z = 3.2}});]]
-		pipeline.addDatum(inputHandle2,i, {x = {x = 1, y= 0, z =0},
+		pipeline.addDatum(inputPoint,i, {p = {x = 0, y= 0, z = i*i}});
+		pipeline.addDatum(inputXY,i, {x = {x = 1.1, y= 2.1, z = 3.1},
+																 y = {x = 1.2, y= 2.2, z = 3.2}});
+		pipeline.addDatum(inputFrame1,i, {x = {x = 1, y= 0, z =0},
 																			y = {x = 0, y= 1, z = 0},
 																			z = {x = 0, y= 0, z = 1}});
-		--[[pipeline.addDatum(frameinput2,i, {x = {x = 1, y= 0, z =0},
+		pipeline.addDatum(inputFrame2,i, {x = {x = 1, y= 0, z =0},
 																			y = {x = 0, y= 1, z = 0},
-																			z = {x = 0, y= 0, z = 1}});]]
+																			z = {x = 0, y= 0, z = 1}});
 		--print(i.." add");
 	end
 	--print("slow");

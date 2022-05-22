@@ -45,7 +45,7 @@ public:
 
 	typename IOWrapper::Wrapped getInput(int index, bool enableBlocking = true) const override {
 		if (index < 0)return nullptr;
-		else if (index > 0) return FilterActionWithInputBase <IOWrapper, Tout, L, LAlloc, Args...>::getInput(index, enableBlocking);
+		else if (index > 0) return FilterActionWithInputBase <IOWrapper, Tout, L, LAlloc, Args...>::getInput(index - 1, enableBlocking);
 		else if (mInput != nullptr) mInput->setEnableWait(enableBlocking);
 		return IOWrapper::template Wrap<Tin>(mInput);
 	}

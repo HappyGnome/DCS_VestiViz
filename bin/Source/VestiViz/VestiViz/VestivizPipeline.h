@@ -117,6 +117,37 @@ class VestivizPipeline : public PipelineBase<PIB_Wrapper> {
 		catch (const std::exception& e) { VestivizPipeline::log(p, e); }
 		return 0;
 	}
+
+
+	// Args: input handle for pipeline
+	// Return: input index for add Datum
+	template<typename S, typename Tin, typename WrappedTPostbox >
+	static int MakeInput_lua(lua_State* L) {
+
+		VestivizPipeline* p = GetPipelineUpVal(L);
+		if (p == nullptr) return 0;
+
+		try {
+			if (!lua_isnumber(L, 1)) {
+				VestivizPipeline::log(p, "Missing leaf index for input.");
+				return 0;
+			}
+			int inputHandle = lua_tonumber(L, 1);			
+
+			auto input = PIB_Wrapper::Unwrap<TimedDatum<S, Tin>>(p->getInput((std::size_t)inputHandle));
+			
+			if (input == nullptr) {
+				VestivizPipeline::log(p, "Unable to connect input.");
+				return 0;
+			}
+			p->mLuaInputs.push_back(std::shared_ptr<DatumInputPostboxWrapper>(new WrappedTPostbox(input)));
+
+			lua_pushnumber(L, p->mLuaInputs.size() - 1);
+			return 1;
+		}
+		catch (const std::exception& e) { VestivizPipeline::log(p, e); }
+		return 0;
+	}
 public:
 	
 	using V3 = DatumArr<S, S, 3>;
@@ -377,9 +408,7 @@ public:
 		pushCount++;
 
 		for (auto it = newInputHandles.cbegin(); it != newInputHandles.cend(); it++) {
-			p->mLuaInputs.push_back(std::shared_ptr<DatumInputPostboxWrapper>(
-				new WrappedT2Postbox(PIB_Wrapper::Unwrap<TimedDatum<S, Tin2>>(p->getInput(*it)))));
-			lua_pushnumber(L, p->mLuaInputs.size() - 1);
+			lua_pushnumber(L, *it);
 			pushCount++;
 		}
 
@@ -445,6 +474,26 @@ public:
 	// Return: output index
 	static int l_MakeXYOutput(lua_State* L) {
 		return MakeOutput_lua<S, DatumArr<S, S, 6>, DOPW_xy<S>>(L);
+	}
+
+	//
+
+	// Args: input handle for pipeline
+	// Return: input index for add Datum
+	static int l_MakePointInput(lua_State* L) {
+		return MakeInput_lua<S, DatumArr<S, S, 3>, DIPW_point<S>>(L);
+	}
+
+	// Args: input handle for pipeline
+	// Return: input index for add Datum
+	static int l_MakeXYInput(lua_State* L) {
+		return MakeInput_lua<S, DatumArr<S, S, 6>, DIPW_xy<S>>(L);
+	}
+
+	// Args: input handle for pipeline
+	// Return: input index for add Datum
+	static int l_MakeFrameInput(lua_State* L) {
+		return MakeInput_lua<S, DatumMatrix<S, 3, 3>, DIPW_frame<S>>(L);
 	}
 
 	static int l_Pipeline_Delete(lua_State* L) {
@@ -575,6 +624,15 @@ public:
 		lua_pushlightuserdata(L, pNew);
 		lua_pushcclosure(L, l_MakeXYOutput, 1);
 		lua_setfield(L, -2, "makeXYOutput");
+		lua_pushlightuserdata(L, pNew);
+		lua_pushcclosure(L, l_MakeFrameInput, 1);
+		lua_setfield(L, -2, "makeFrameInput");
+		lua_pushlightuserdata(L, pNew);
+		lua_pushcclosure(L, l_MakePointInput, 1);
+		lua_setfield(L, -2, "makePointInput");
+		lua_pushlightuserdata(L, pNew);
+		lua_pushcclosure(L, l_MakeXYInput, 1);
+		lua_setfield(L, -2, "makeXYInput");
 		lua_pushlightuserdata(L, pNew);
 		lua_pushcclosure(L, l_ConnectFilter, 1);
 		lua_setfield(L, -2, "connectFilter");
