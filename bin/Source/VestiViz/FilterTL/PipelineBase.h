@@ -23,8 +23,9 @@ protected:
 
 		if (leafToAddIndex >= mLeavesInConstructionIndices.size())return false;
 		std::size_t filterIndex = mLeavesInConstructionIndices[leafToAddIndex];
+		if(filterIndex == LEAF_CONSTRUCTED || filterIndex > mFilters.size()) return false;
 		std::shared_ptr<MultiPartAsyncFilter<IOWrapper>> filterToConnect = mFilters[filterIndex];
-		if(filterIndex == LEAF_CONSTRUCTED || filterIndex > mFilters.size() || fromLeaves.size() < filterToConnect->getInputCount()) return false;
+		if (fromLeaves.size() < filterToConnect->getInputCount()) return false;
 
 		//validate input connection params
 		for (auto it = fromLeaves.cbegin(); it != fromLeaves.cend(); it++) {
@@ -48,7 +49,10 @@ protected:
 		inputNumber = 0;
 		newInputs.clear();
 		for (auto it = fromLeaves.cbegin(); it != fromLeaves.cend(); it++) {
-			if (*it != NEW_INPUT) mLeafIndices[*it] = LEAF_REJOINED;
+			if (*it != NEW_INPUT)
+			{
+				if (mFilters[mLeafIndices[*it]]->validate()) mLeafIndices[*it] = LEAF_REJOINED;
+			}
 			else {
 				mInputIndices.emplace_back(mFilters.size() - 1, inputNumber);
 				newInputs.push_back(mInputIndices.size() - 1);
@@ -76,7 +80,6 @@ protected:
 			outputLeaf = leafToAddIndex;
 		}
 		else {
-			
 			mFilters.push_back(std::shared_ptr<MultiPartAsyncFilter<IOWrapper>>(new MultiPartAsyncFilter<IOWrapper>()));
 			filterIndex = mFilters.size() - 1;
 			mLeavesInConstructionIndices.push_back(filterIndex);
@@ -92,6 +95,16 @@ protected:
 		std::size_t filterIndex = mLeavesInConstructionIndices[filterInConstructionHandle];
 		output = mFilters[filterIndex]->getInputCount();
 		return true;
+	}
+
+	bool TryAddFilterActionOutput(std::size_t constructionIndex, std::size_t internalLeafIndex) {
+
+		if (constructionIndex >= mLeavesInConstructionIndices.size())return false;
+		std::size_t filterIndex = mLeavesInConstructionIndices[constructionIndex];
+		if (filterIndex == LEAF_CONSTRUCTED || filterIndex > mFilters.size()) return false;
+		std::shared_ptr<MultiPartAsyncFilter<IOWrapper>> filterToConnect = mFilters[filterIndex];
+		
+		return mFilters[filterIndex]->addOutputToAction(internalLeafIndex);
 	}
 
 public:
@@ -133,7 +146,7 @@ public:
 		if (leafFrom >= mLeafIndices.size() || mLeafIndices[leafFrom] == LEAF_REJOINED) return false;
 		if(!mFilters[mLeafIndices[leafFrom]]->setOutput(std::move(wrappedInput))) return false;
 
-		mLeafIndices[leafFrom] = LEAF_REJOINED;
+		if (mFilters[mLeafIndices[leafFrom]] -> validate()) mLeafIndices[leafFrom] = LEAF_REJOINED;
 
 		return true;
 	}

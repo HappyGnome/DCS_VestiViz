@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <mutex>
+#include <concurrent_vector.h>
 #include "FilterActionBase.h"
 #include "PostboxBase.h"
 
@@ -54,14 +55,13 @@ public:
 
 // Recursion base -------------------------------------------------------------------------------------------------------------
 
-template <typename IOWrapper, typename Tout, template<typename, typename> typename L, template<typename> typename LAlloc, typename Tin>
+template <typename IOWrapper, typename Tout, 
+	template<typename, typename> typename L, template<typename> typename LAlloc, typename Tin>
 class FilterActionWithInputBase<IOWrapper, Tout, L, LAlloc, Tin> : public FilterActionBase<IOWrapper> {
 
 	bool mBlockForOutput = false;
 
-	std::shared_ptr<PostboxInputBase<Tout>> mOutput;
-	std::shared_ptr<PostboxInputBase<Tout>> mOutputAwaited;//used only in processing thread, set only while holding mOutputMutex
-	std::mutex mOutputMutex;
+	Concurrency::concurrent_vector<std::shared_ptr<PostboxInputBase<Tout>>> mOutputs;
 
 	std::shared_ptr<PostboxBase<Tin, L, LAlloc<Tin>>> mInput;
 protected:
@@ -85,19 +85,16 @@ protected:
 	bool actOnAndPost() {
 		Tout newLatest = actOn();
 
-		{
-			std::lock_guard<std::mutex> lock(mOutputMutex);
-			mOutputAwaited = mOutput;
-		}
-
-		if (mOutputAwaited != nullptr) {
-			return mOutputAwaited->addDatum(newLatest, mBlockForOutput);// may block until datum read
+		for (auto it = mOutputs.begin(); it != mOutputs.end(); it++) {
+			if (*it != nullptr) {
+				return (*it)->addDatum(newLatest, mBlockForOutput);// may block until datum read
+			}
 		}
 		return true;
 	}
 
 public:
-	explicit FilterActionWithInputBase(const std::shared_ptr<PostboxBase<Tin, L, LAlloc<Tin>>>& input) : mInput(input) {}
+	explicit FilterActionWithInputBase(const std::shared_ptr<PostboxBase<Tin, L, LAlloc<Tin>>>& input) : mInput(input), mOutputs(1) {}
 
 	bool action() override {
 		if (!waitForPost()) return false;
@@ -115,13 +112,26 @@ public:
 
 	bool setOutput(typename IOWrapper::Wrapped&& wrappedInput) override {
 		auto unwrapped = IOWrapper::template Unwrap<Tout>(std::move(wrappedInput));
+
 		if (unwrapped != nullptr) {
-			std::lock_guard<std::mutex> lock(mOutputMutex);
-			if (mOutput != nullptr) mOutput->cancel();
-			mOutput = unwrapped;
-			return true;
+			for (int i = 0; i < mOutputs.size(); i++) {
+				if (mOutputs[i] == nullptr) {
+					mOutputs[i] = unwrapped;
+					return true;
+				}				
+			}
 		}
 		return false;
+	}
+	int addOutput() override {		
+		mOutputs.push_back(nullptr);
+		return mOutputs.size() - 1;
+	}
+	bool allOutputsJoined() override {
+		for (auto it = mOutputs.cbegin(); it != mOutputs.cend(); it++) {
+			if(*it == nullptr) return false;
+		}
+		return true;
 	}
 
 	void setBlockForOutput(bool enable) override {
@@ -131,8 +141,11 @@ public:
 	void cancel() override {
 		mInput->cancel();
 		{
-			std::lock_guard<std::mutex> lock(mOutputMutex);
-			if (mOutputAwaited != nullptr) mOutputAwaited->cancel();
+			for (auto it = mOutputs.begin(); it != mOutputs.end(); it++)
+			{
+				if (*it != nullptr) (*it)->cancel();
+			}
+			
 		}
 	}
 };

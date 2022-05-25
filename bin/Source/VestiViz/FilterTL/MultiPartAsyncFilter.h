@@ -18,14 +18,14 @@ template<typename IOWrapper>
 class MultiPartAsyncFilter:public AsyncFilter<IOWrapper> {
 
 	Concurrency::concurrent_vector<std::shared_ptr<FilterActionBase<IOWrapper>>> mFilterActions;
-	std::vector< std::size_t > mLeafIndices;// index into mFilterActions
+	std::vector<std::size_t> mLeafIndices;// index into mFilterActions
 	std::vector< std::tuple<std::size_t, int> > mInputIndices; // (index into mFilterActions, input number)
 	std::mutex mFilterIndicesMutex;
 protected:
 
 	bool process() override {
 		for (auto it = mFilterActions.begin(); it != mFilterActions.end(); it++) {
-			if(!(*it)->action())return false;
+			if(!(*it)->action()) return false;
 		}
 		return true;
 	}
@@ -70,8 +70,10 @@ public:
 		//Try to make connections
 		std::size_t inputNumber = 0;
 		for (auto it = fromLeaves.cbegin(); it != fromLeaves.cend(); it++) {
-			if(	*it != NEW_INPUT 
-				&& !mFilterActions[mLeafIndices[*it]]->setOutput(action->getInput(inputNumber,false)))return false;
+			if (*it != NEW_INPUT)
+			{
+				if(!mFilterActions[mLeafIndices[*it]]->setOutput(action->getInput(inputNumber, false))) return false;
+			}
 			inputNumber++;
 		}
 
@@ -83,7 +85,9 @@ public:
 		inputNumber = 0;
 		outputNewInputHandles.clear();
 		for (auto it = fromLeaves.cbegin(); it != fromLeaves.cend(); it++) {
-			if (*it != NEW_INPUT) mLeafIndices[*it] = LEAF_REJOINED;
+			if (*it != NEW_INPUT) {
+				if(mFilterActions[mLeafIndices[*it]] -> allOutputsJoined()) mLeafIndices[*it] = LEAF_REJOINED;
+			}
 			else {
 				mInputIndices.emplace_back(mFilterActions.size() - 1, inputNumber);
 				outputNewInputHandles.push_back(mInputIndices.size() - 1);
@@ -100,14 +104,11 @@ public:
 		std::size_t leafFrom = 0;
 		bool leafFound = false;
 		for (auto it = mLeafIndices.cbegin(); it != mLeafIndices.cend(); it++) {
-			if (*it != LEAF_REJOINED && leafFound) {
-				 return false;
+			if (*it != LEAF_REJOINED) {
+				leafFound = true;
+				break;
 			}
-			else if (*it == LEAF_REJOINED && !leafFound) {
-				leafFrom++;
-			}
-			else leafFound = true;
-			
+			leafFrom++;			
 		}
 		if (!leafFound) return false;
 
@@ -115,11 +116,19 @@ public:
 
 		mFilterActions[mLeafIndices[leafFrom]]->setBlockForOutput(blockingOutput);
 
-		mLeafIndices[leafFrom] = LEAF_REJOINED;
+		if(mFilterActions[mLeafIndices[leafFrom]] -> allOutputsJoined()) mLeafIndices[leafFrom] = LEAF_REJOINED;
 
 		return true;
 	}
 
+	bool addOutputToAction(std::size_t leafIndex) {
+		std::lock_guard<std::mutex> lock(mFilterIndicesMutex);
+		if (leafIndex < mLeafIndices.size() && mLeafIndices[leafIndex] != LEAF_REJOINED) {
+			mFilterActions[mLeafIndices[leafIndex]]->addOutput();
+			return true;
+		}
+		return false;
+	}
 
 	int getInputCount() override{
 		std::lock_guard<std::mutex> lock(mFilterIndicesMutex);

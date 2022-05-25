@@ -156,6 +156,7 @@ public:
 	using V8 = DatumArr<S, S, 8>;
 	using M3 = DatumMatrix<S, 3, 3>;
 	using M8x3 = DatumMatrix<S, 8, 3>;
+	using M6x3 = DatumMatrix<S, 6, 3>;
 
 	using PFAB = std::shared_ptr<FilterActionBase<PIB_Wrapper>>;
 	
@@ -343,6 +344,19 @@ public:
 		return 0;
 	}
 
+	// Args: filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
+	//return: filterhandle, new internal leaf handle, input handles added to the filter...
+	static int l_DynMatMultPickFilterPointToXY(lua_State* L) {
+		try {
+			return VestivizPipeline::addAction_lua<2>(
+				L,
+				PFAB(new DynMatMultFilterAction<PIB_Wrapper, S, V6, V3, M6x3>()),
+				0);
+		}
+		catch (...) {/*TODO logging*/ }
+		return 0;
+	}
+
 	// Args: coeff1,coeff2,  filterHandle (or nil for new), internal leaf handles to connect new action to .. ( x N & nil for new input)
 	//return: filterhandle, new internal leaf handle, input handles added to the filter...
 	static int l_LinCombFilterWOff(lua_State* L) {
@@ -430,6 +444,25 @@ public:
 		}
 
 		return pushCount;
+	}
+
+	// Args: filterUnderConstructionHandle, internal leaf handle to add output to
+	//return: nil
+	static int l_AddInputToFilter(lua_State* L) {
+
+		VestivizPipeline* p = GetPipelineUpVal(L);
+		if (p == nullptr) return 0;
+
+		int inputsToConnect = 0;
+
+		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2)) return 0;
+
+		std::size_t filterConstructionHandle = lua_tointeger(L, 1);
+		std::size_t internalLeafHandle = lua_tointeger(L, 2);
+
+		p->TryAddFilterActionOutput(filterConstructionHandle, internalLeafHandle);
+
+		return 0;
 	}
 
 	// args: inputIndex, timed datum
@@ -656,6 +689,9 @@ public:
 		lua_pushlightuserdata(L, pNew);
 		lua_pushcclosure(L, l_ConnectFilter, 1);
 		lua_setfield(L, -2, "connectFilter");
+		lua_pushlightuserdata(L, pNew);
+		lua_pushcclosure(L, l_AddInputToFilter, 1);
+		lua_setfield(L, -2, "addInputToFilter");		
 		lua_pushlightuserdata(L, pNew);
 		lua_pushcclosure(L, l_Validate, 1);
 		lua_setfield(L, -2, "validate");

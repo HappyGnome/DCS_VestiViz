@@ -13,6 +13,8 @@ public:
 	virtual std::size_t inputCount() = 0;
 
 	virtual bool setOutput(typename IOWrapper::Wrapped&& wrappedInput) = 0;
+	virtual bool allOutputsJoined() = 0;
+	virtual int addOutput() = 0;
 	virtual typename IOWrapper::Wrapped getInput(int index, bool enableBlocking = true) const= 0;
 	virtual void setBlockForOutput(bool enable) = 0;
 	virtual void cancel() = 0;
