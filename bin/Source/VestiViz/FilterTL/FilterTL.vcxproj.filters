@@ -135,6 +135,9 @@
     <ClInclude Include="StatMatMultPickFilterAction.h">
       <Filter>Header Files\FilterActions</Filter>
     </ClInclude>
+    <ClInclude Include="ConcatFilterAction.h">
+      <Filter>Header Files\FilterActions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ErrorStack.cpp">

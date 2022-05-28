@@ -12,6 +12,6 @@ using PIB_Wrapper = TemplateInterchangeWrapper<
 	TimedDatum<double, DatumArr<double, double, 6>>,
 	TimedDatum<double, DatumArr<double, double, 3>>,
 	TimedDatum<double, DatumMatrix<double, 3, 3>>,
-	TimedDatum<double, DatumArr<double, double, 8>>>;
-
+	TimedDatum<double, DatumArr<double, double, 8>>,
+	TimedDatum<double, DatumArr<double, double, 4>> > ;
 #endif

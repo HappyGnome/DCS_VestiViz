@@ -49,7 +49,7 @@ protected:
 		inputNumber = 0;
 		newInputs.clear();
 		for (auto it = fromLeaves.cbegin(); it != fromLeaves.cend(); it++) {
-			if (*it != NEW_INPUT)
+			if (*it != NEW_INPUT && mLeafIndices[*it]!= LEAF_REJOINED)
 			{
 				if (mFilters[mLeafIndices[*it]]->validate()) mLeafIndices[*it] = LEAF_REJOINED;
 			}
@@ -142,9 +142,9 @@ public:
 		return mFilters[std::get<0>(inSpec)]->getInput(std::get<1>(inSpec));
 	}
 
-	bool setOutput(std::size_t leafFrom, typename IOWrapper::Wrapped&& wrappedInput) {
+	bool setOutput(std::size_t leafFrom, typename IOWrapper::Wrapped&& wrappedInput, bool blockForOutput = false) {
 		if (leafFrom >= mLeafIndices.size() || mLeafIndices[leafFrom] == LEAF_REJOINED) return false;
-		if(!mFilters[mLeafIndices[leafFrom]]->setOutput(std::move(wrappedInput))) return false;
+		if(!mFilters[mLeafIndices[leafFrom]]->setOutput(std::move(wrappedInput), blockForOutput)) return false;
 
 		if (mFilters[mLeafIndices[leafFrom]] -> validate()) mLeafIndices[leafFrom] = LEAF_REJOINED;
 

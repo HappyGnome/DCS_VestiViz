@@ -41,6 +41,16 @@ public:
 		return os;
 	}
 
+	template<std::size_t M>
+	DatumArr<S, V, N + M> Concat(const DatumArr<S, V, M>& v) const{
+		std::array<V, N + M> ret;
+		std::copy(mVec.cbegin(), mVec.cend(), ret.begin());
+		auto it = ret.begin();
+		std::advance(it, N);
+		std::copy(v.mVec.cbegin(), v.mVec.cend(), it);
+		return DatumArr<S, V, N + M>(std::move(ret));
+	}
+
 	//Algebraic operators
 
 	DatumArr operator * (const S scalar) const {

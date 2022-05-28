@@ -184,6 +184,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ConcatFilterAction.h" />
     <ClInclude Include="DynMatMultPickFilterAction.h" />
     <ClInclude Include="ErrorStack.h" />
     <ClInclude Include="LogFilterAction.h" />

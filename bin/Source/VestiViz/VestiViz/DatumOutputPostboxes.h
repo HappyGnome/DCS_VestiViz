@@ -61,6 +61,40 @@ public:
 };
 
 template<typename S>
+class DOPW_w : public DatumOutputPostboxWrapper {
+    std::shared_ptr<SimplePostbox<TimedDatum<S, DatumArr<S, S, 4>>>> mWrapped;
+public:
+    explicit DOPW_w(std::shared_ptr<SimplePostbox<TimedDatum<S, DatumArr<S, S, 4>>>> toWrap) :mWrapped(toWrap) {};
+
+    int WriteToLua(lua_State* L) final {
+        auto val = TimedDatum<S, DatumArr<S, S, 4>>::zero();
+
+        if (mWrapped != nullptr) {
+            mWrapped->flushPost();
+            if (!mWrapped->empty()) val = *(mWrapped->output().cbegin());
+        }
+
+        luaL_checkstack(L, 3, "Lua stack space insufficient");
+        lua_createtable(L, 0, 3);
+        lua_pushnumber(L, val.t);
+        lua_setfield(L, -2, "t");
+
+        lua_createtable(L, 0, 4);
+        lua_pushnumber(L, val.datum[0]);
+        lua_setfield(L, -2, "top");
+        lua_pushnumber(L, val.datum[1]);
+        lua_setfield(L, -2, "right");
+        lua_pushnumber(L, val.datum[2]);
+        lua_setfield(L, -2, "bottom");
+        lua_pushnumber(L, val.datum[3]);
+        lua_setfield(L, -2, "left");
+        lua_setfield(L, -2, "w");
+
+        return 1;
+    }
+};
+
+template<typename S>
 class DOPW_point : public DatumOutputPostboxWrapper {
     std::shared_ptr<SimplePostbox<TimedDatum<S, DatumArr<S, S, 3>>>> mWrapped;
 public:

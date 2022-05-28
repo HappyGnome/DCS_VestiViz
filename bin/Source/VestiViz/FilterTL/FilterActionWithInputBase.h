@@ -50,6 +50,11 @@ public:
 		else if (mInput != nullptr) mInput->setEnableWait(enableBlocking);
 		return IOWrapper::template Wrap<Tin>(mInput);
 	}
+
+	void cancel() override {
+		mInput->cancel();
+		FilterActionWithInputBase <IOWrapper, Tout, L, LAlloc, Args...>::cancel();
+	}
 };
 
 
@@ -87,7 +92,7 @@ protected:
 
 		for (auto it = mOutputs.begin(); it != mOutputs.end(); it++) {
 			if (*it != nullptr) {
-				return (*it)->addDatum(newLatest, mBlockForOutput);// may block until datum read
+				(*it)->addDatum(newLatest, mBlockForOutput);// may block until datum read
 			}
 		}
 		return true;
@@ -140,12 +145,9 @@ public:
 
 	void cancel() override {
 		mInput->cancel();
+		for (auto it = mOutputs.begin(); it != mOutputs.end(); it++)
 		{
-			for (auto it = mOutputs.begin(); it != mOutputs.end(); it++)
-			{
-				if (*it != nullptr) (*it)->cancel();
-			}
-			
+			if (*it != nullptr) (*it)->cancel();
 		}
 	}
 };
