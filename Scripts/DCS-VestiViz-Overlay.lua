@@ -25,7 +25,7 @@ VestiViz = {
 		barWidth = 10,
 		accFactor = 2,
 		rotFactor = 1,
-		somatogravFactor  = 1,
+		somatogravFactor  = 0.2,
 		maxw = 0.3,
 		minw = 0.0,
 		offlim = 0.4,
@@ -382,7 +382,7 @@ VestiViz.doOnSimFrame = function()
 	local now = base.Export.LoGetModelTime()
 	local pos3 = base.Export.LoGetCameraPosition()
 	local shipVel = base.Export.LoGetVectorVelocity()
-	local shipPos = base.Export.LoGetSelfData().Position;
+	--local shipPos = base.Export.LoGetSelfData().Position;
 	
 	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputv,now, {p =shipVel});
 	VestiViz._Pipeline.addDatum(VestiViz._PipelineData.inputxy,now, pos3);
@@ -545,11 +545,11 @@ VestiViz.onSimulationFrame = function()
 	if VestiViz.hide == false then
 			VestiViz.errorCooldown = math.max(VestiViz.errorCooldown - 1,0)
 		local status,err = pcall(VestiViz.doOnSimFrame)
-		if VestiViz.errorCooldown <= 0 then
+		if not status and VestiViz.errorCooldown <= 0 then
 			VestiViz.log(err)
-			VestiViz.log(base.Export.LoGetSelfData());
+			--[[VestiViz.log(base.Export.LoGetSelfData());
 			VestiViz.log(base.Export.LoGetFMData());
-			VestiViz.log(base.Export.LoGetPlayerPlaneId());
+			VestiViz.log(base.Export.LoGetWorldObjects()[base.Export.LoGetPlayerPlaneId()]);]]
 			VestiViz.errorCooldown = 4000
 		end
 	end
